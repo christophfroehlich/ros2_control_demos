@@ -177,6 +177,7 @@ Then we are ready to bring up all the components to view the robot. Let's start 
 Now, we need to start rviz2 to view the robot as well as joint state publisher gui, each in their own terminals after sourcing our ros2 installation.
 
 Terminal 1:
+
 .. code-block:: shell
 
   source /opt/ros/rolling/setup.bash
