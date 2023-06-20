@@ -180,7 +180,7 @@ Terminal 1:
 
 .. code-block:: shell
 
-  source /opt/ros/rolling/setup.bash
+  source /opt/ros/${ROS_DISTRO}/setup.bash
   ros2 run joint_state_publisher_gui joint_state_publisher_gui
 
 Terminal 2:
