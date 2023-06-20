@@ -80,7 +80,7 @@ Those two world-known imaginary robots are trivial simulations to demonstrate an
 
 ## Usage
 ### Using Docker
-**Building your own**
+**Building your own docker image**
 
 ```bash
 mkdir -p ~/ros2_ws/src
@@ -90,7 +90,35 @@ cd ros2_control_demos
 docker build . -t ros2_control_demos -f Dockerfile/Dockerfile
 ```
 
-**To run the demo**
+**To view the robot**
+
+After [installing ros2 rolling](https://docs.ros.org/en/rolling/Installation.html) on your system, make sure you have the joint state publisher gui package installed as well:
+```bash
+sudo apt-get install -y ros-rolling-joint-state-publisher-gui
+```
+
+Now, you can bring up the docker file with the launch file of the robot you'd like to view, but make sure to set `gui:=false` as demonstrated below:
+```bash
+docker run -it --rm ros2_control_demos ros2 launch ros2_control_demos_example_1 view_robot.launch.py gui:=false
+```
+
+Then run each of the following programs in two seperate terminals after sourcing your ros2 installation:
+
+Terminal 1:
+```bash
+source /opt/ros/rolling/setup.bash
+ros2 run joint_state_publisher_gui joint_state_publisher_gui
+```
+
+Terminal 2:
+```bash
+cd ~/ros2_ws
+source /opt/ros/rolling/setup.bash
+rviz2 -d src/ros2_control_demos/example_1/description/rviz/rrbot.rviz
+```
+
+
+**To run the ros2 control demo**
 
 Docker allows us to run the demo without the GUI if configured properly. The following command runs the demo without the GUI:
 ```bash
