@@ -187,7 +187,7 @@ Terminal 2:
 
 .. code-block:: shell
 
-  source /opt/ros/rolling/setup.bash
+  source /opt/ros/${ROS_DISTRO}/setup.bash
   cd ~/ros2_ws
   rviz2 -d src/ros2_control_demos/example_1/description/rviz/rrbot.rviz
 
