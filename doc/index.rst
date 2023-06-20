@@ -166,7 +166,7 @@ After having `ROS 2 installed <https://docs.ros.org/en/rolling/Installation.html
 
 .. code-block:: shell
   
-  sudo apt-get install -y ros-rolling-joint-state-publisher-gui
+  sudo apt-get install -y ros-${ROS_DISTRO}-joint-state-publisher-gui ros-${ROS_DISTRO}-rviz2
 
 Then we are ready to bring up all the components to view the robot. Let's start with the docker container by running the following command:
 
