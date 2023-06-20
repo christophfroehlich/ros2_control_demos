@@ -193,8 +193,8 @@ Terminal 2:
 
 Now, you can see the robot moving by changing the values of the joints by moving the sliders around in the ``joint_state_publisher_gui``.
 
-To Run the ros2 control demo
-************
+To run the ros2_control demos
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The following command runs the demo without the GUI:
 
