@@ -157,8 +157,8 @@ First, build the dockerfile with
   cd ros2_control_demos
   docker build . -t ros2_control_demos -f Dockerfile/Dockerfile
 
-To View the Robot
-************
+To view the robot
+^^^^^^^^^^^^^^^^^
 
 Docker now allows us to run the demo without the GUI if configured properly. Now we can view the robot by the following procedure:
 
