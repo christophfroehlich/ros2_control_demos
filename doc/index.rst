@@ -184,6 +184,7 @@ Terminal 1:
   ros2 run joint_state_publisher_gui joint_state_publisher_gui
 
 Terminal 2:
+
 .. code-block:: shell
 
   source /opt/ros/rolling/setup.bash
