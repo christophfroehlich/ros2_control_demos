@@ -174,7 +174,7 @@ Then we are ready to bring up all the components to view the robot. Let's start 
 
   docker run -it --rm --name ros2_control_demos --net host ros2_control_demos ros2 launch ros2_control_demos_example_1 view_robot.launch.py gui:=false
 
-Now, we need to start rviz2 to view the robot as well as joint state publisher gui, each in their own terminals after sourcing our ros2 installation.
+Now, we need to start ``rviz2`` to view the robot as well as ``joint_state_publisher_gui``, each in their own terminals after sourcing our ROS 2  installation.
 
 Terminal 1:
 
