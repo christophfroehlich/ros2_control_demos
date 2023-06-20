@@ -191,7 +191,7 @@ Terminal 2:
   cd ~/ros2_ws
   rviz2 -d src/ros2_control_demos/example_1/description/rviz/rrbot.rviz
 
-Now, you can see the robot moving by changing the values of the joints by moving the sliders around in the joint state publisher gui.
+Now, you can see the robot moving by changing the values of the joints by moving the sliders around in the ``joint_state_publisher_gui``.
 
 To Run the ros2 control demo
 ************
