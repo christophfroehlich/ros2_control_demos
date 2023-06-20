@@ -157,7 +157,44 @@ First, build the dockerfile with
   cd ros2_control_demos
   docker build . -t ros2_control_demos -f Dockerfile/Dockerfile
 
-Docker now allows us to run the demo without the GUI if configured properly. The following command runs the demo without the GUI:
+To View the Robot
+************
+
+Docker now allows us to run the demo without the GUI if configured properly. Now we can view the robot by the following procedure:
+
+After having `ros2 rolling installed on your system<https://docs.ros.org/en/rolling/Installation.html>`, we can use the joint state publisher gui package to give manual joint values to the robot. To install the package you can run:
+
+.. code-block:: shell
+  
+  sudo apt-get install -y ros-rolling-joint-state-publisher-gui
+
+Then we are ready to bring up all the components to view the robot. Let's start with the docker container by running the following command:
+
+.. code-block:: shell
+
+  docker run -it --rm --name ros2_control_demos --net host ros2_control_demos ros2 launch ros2_control_demos_example_1 view_robot.launch.py gui:=false
+
+Now, we need to start rviz2 to view the robot as well as joint state publisher gui, each in their own terminals after sourcing our ros2 installation.
+
+Terminal 1:
+.. code-block:: shell
+
+  source /opt/ros/rolling/setup.bash
+  ros2 run joint_state_publisher_gui joint_state_publisher_gui
+
+Terminal 2:
+.. code-block:: shell
+
+  source /opt/ros/rolling/setup.bash
+  cd ~/ros2_ws
+  rviz2 -d src/ros2_control_demos/example_1/description/rviz/rrbot.rviz
+
+Now, you can see the robot moving by changing the values of the joints by moving the sliders around in the joint state publisher gui.
+
+To Run the ros2 control demo
+************
+
+The following command runs the demo without the GUI:
 
 .. code-block:: shell
 
