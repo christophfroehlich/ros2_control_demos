@@ -100,7 +100,7 @@ def generate_launch_description():
             "position_trajectory_controller",
             "-c",
             "/rrbot/controller_manager",
-            "--stopped",
+            "--inactive",
         ],
     )
 

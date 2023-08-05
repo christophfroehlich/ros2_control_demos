@@ -699,7 +699,7 @@ ros2 launch ros2_control_demo_bringup test_forward_position_controller.launch.py
 
 Switch controller to use `position_trajectory_controller` (`JointTrajectoryController`):
 ```
-ros2 control switch_controllers -c /rrbot/controller_manager --stop forward_position_controller --start position_trajectory_controller
+ros2 control switch_controllers -c /rrbot/controller_manager --deactivate forward_position_controller --activate position_trajectory_controller
 ```
 
 Commanding the robot using `JointTrajectoryController` (name: `/rrbot/position_trajectory_controller`)
@@ -750,8 +750,8 @@ ros2 launch ros2_control_demo_bringup test_multi_controller_manager_forward_posi
 
 Switch controller to use `position_trajectory_controller`s (`JointTrajectoryController`) - alternatively start main launch file with argument `robot_controller:=position_trajectory_controller`:
 ```
-ros2 control switch_controllers -c /rrbot_1/controller_manager --stop forward_position_controller --start position_trajectory_controller
-ros2 control switch_controllers -c /rrbot_2/controller_manager --stop forward_position_controller --start position_trajectory_controller
+ros2 control switch_controllers -c /rrbot_1/controller_manager --deactivate forward_position_controller --activate position_trajectory_controller
+ros2 control switch_controllers -c /rrbot_2/controller_manager --deactivate forward_position_controller --activate position_trajectory_controller
 ```
 
 Commanding the robot using `JointTrajectoryController` (`position_trajectory_controller`):
