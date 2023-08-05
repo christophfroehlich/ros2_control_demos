@@ -33,15 +33,14 @@
 
 namespace ros2_control_demo_hardware
 {
-using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
-
 class DiffBotSystemHardware : public hardware_interface::SystemInterface
 {
 public:
   RCLCPP_SHARED_PTR_DEFINITIONS(DiffBotSystemHardware);
 
   ROS2_CONTROL_DEMO_HARDWARE_PUBLIC
-  CallbackReturn on_init(const hardware_interface::HardwareInfo & info) override;
+  hardware_interface::CallbackReturn on_init(
+    const hardware_interface::HardwareInfo & info) override;
 
   ROS2_CONTROL_DEMO_HARDWARE_PUBLIC
   std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
@@ -50,16 +49,20 @@ public:
   std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
   ROS2_CONTROL_DEMO_HARDWARE_PUBLIC
-  CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state) override;
+  hardware_interface::CallbackReturn on_activate(
+    const rclcpp_lifecycle::State & previous_state) override;
 
   ROS2_CONTROL_DEMO_HARDWARE_PUBLIC
-  CallbackReturn on_deactivate(const rclcpp_lifecycle::State & previous_state) override;
+  hardware_interface::CallbackReturn on_deactivate(
+    const rclcpp_lifecycle::State & previous_state) override;
 
   ROS2_CONTROL_DEMO_HARDWARE_PUBLIC
-  hardware_interface::return_type read() override;
+  hardware_interface::return_type read(
+    const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
   ROS2_CONTROL_DEMO_HARDWARE_PUBLIC
-  hardware_interface::return_type write() override;
+  hardware_interface::return_type write(
+    const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 private:
   // Parameters for the DiffBot simulation
@@ -70,11 +73,6 @@ private:
   std::vector<double> hw_commands_;
   std::vector<double> hw_positions_;
   std::vector<double> hw_velocities_;
-
-  // Store time between update loops
-  rclcpp::Clock clock_;
-  rclcpp::Time last_timestamp_;
-  rclcpp::Time current_timestamp;  // Avoid initialization on each read
 
   // Store the wheeled robot position
   double base_x_, base_y_, base_theta_;

@@ -4,6 +4,15 @@
 
 This repository provides templates for the development of `ros2_control`-enabled robots and a simple simulations to demonstrate and prove `ros2_control` concepts.
 
+### First-Time Users
+
+If you're just starting out, we suggest to look at the minimal example: `ros2_control_demo_bringup/launch/rrbot_system_position_only.launch.py`.
+
+Also pay attention to these files:
+
+- `ros2_control_demo_description/rrbot_description/ros2_control/rrbot_system_position_only.ros2_control.xacro` -- this file defines the ros2_control interfaces for each joint, e.g. position or velocity. The simulation can be launched with Gazebo or simulated with RViz only.
+- `rrbot_controllers.yaml` -- list the controllers that will be launched.
+
 ### Goals
 
 The repository has three goals:
@@ -14,12 +23,12 @@ The repository has three goals:
 
 ## Build status
 
-ROS2 Distro | Branch | Build status | Documentation | Released packages
-:---------: | :----: | :----------: | :-----------: | :---------------:
-**Rolling** | [`master`](https://github.com/ros-controls/ros2_control_demos/tree/rolling) | [![Rolling Binary Build](https://github.com/ros-controls/ros2_control_demos/actions/workflows/rolling-binary-build.yml/badge.svg?branch=master)](https://github.com/ros-controls/ros2_control_demos/actions/workflows/rolling-binary-build.yml?branch=master) <br /> [![Rolling Semi-Binary Build](https://github.com/ros-controls/ros2_control_demos/actions/workflows/rolling-semi-binary-build.yml/badge.svg?branch=master)](https://github.com/ros-controls/ros2_control_demos/actions/workflows/rolling-semi-binary-build.yml?branch=master) <br /> [![Rolling Source Build](https://github.com/ros-controls/ros2_control_demos/actions/workflows/rolling-source-build.yml/badge.svg?branch=master)](https://github.com/ros-controls/ros2_control_demos/actions/workflows/rolling-source-build.yml?branch=master) | [Documentation](https://control.ros.org) <br /> [API Reference](https://control.ros.org/rolling/api/) | [ros2_control_demos](https://index.ros.org/p/ros2_control_demos/#rolling)
-**Rolling - last Focal** | [`master`](https://github.com/ros-controls/ros2_control_demos/tree/rolling) | [![Rolling Binary Build](https://github.com/ros-controls/ros2_control_demos/actions/workflows/rolling-binary-build-last-focal.yml/badge.svg?branch=master)](https://github.com/ros-controls/ros2_control_demos/actions/workflows/rolling-binary-build-last-focal.yml?branch=master) <br /> [![Rolling Semi-Binary Build](https://github.com/ros-controls/ros2_control_demos/actions/workflows/rolling-semi-binary-build-last-focal.yml/badge.svg?branch=master)](https://github.com/ros-controls/ros2_control_demos/actions/workflows/rolling-semi-binary-build-last-focal.yml?branch=master) | [Documentation](https://control.ros.org) <br /> [API Reference](https://control.ros.org/rolling/api/) | [ros2_control_demos](https://index.ros.org/p/ros2_control_demos/#rolling)
-**Galactic** | [`galactic`](https://github.com/ros-controls/ros2_control_demos/tree/galactic) | [![Galactic Binary Build](https://github.com/ros-controls/ros2_control_demos/actions/workflows/galactic-binary-build.yml/badge.svg?branch=galactic)](https://github.com/ros-controls/ros2_control_demos/actions/workflows/galactic-binary-build.yml?branch=galactic) <br /> [![Galactic Semi-Binary Build](https://github.com/ros-controls/ros2_control_demos/actions/workflows/galactic-semi-binary-build.yml/badge.svg?branch=galactic)](https://github.com/ros-controls/ros2_control_demos/actions/workflows/galactic-semi-binary-build.yml?branch=galactic) <br /> [![Galactic Source Build](https://github.com/ros-controls/ros2_control_demos/actions/workflows/galactic-source-build.yml/badge.svg?branch=galactic)](https://github.com/ros-controls/ros2_control_demos/actions/workflows/galactic-source-build.yml?branch=galactic) | [Documentation](https://control.ros.org) <br /> [API Reference](https://control.ros.org/rolling/api/) | [ros2_control_demos](https://index.ros.org/p/ros2_control_demos/#galactic)
-**Foxy** | [`foxy`](https://github.com/ros-controls/ros2_control_demos/tree/foxy) | [![Foxy Binary Build](https://github.com/ros-controls/ros2_control_demos/actions/workflows/foxy-binary-build.yml/badge.svg?branch=foxy)](https://github.com/ros-controls/ros2_control_demos/actions/workflows/foxy-binary-build.yml?branch=foxy) <br /> [![Foxy Semi-Binary Build](https://github.com/ros-controls/ros2_control_demos/actions/workflows/foxy-semi-binary-build.yml/badge.svg?branch=foxy)](https://github.com/ros-controls/ros2_control_demos/actions/workflows/foxy-semi-binary-build.yml?branch=foxy) <br /> [![Foxy Source Build](https://github.com/ros-controls/ros2_control_demos/actions/workflows/foxy-source-build.yml/badge.svg?branch=foxy)](https://github.com/ros-controls/ros2_control_demos/actions/workflows/foxy-source-build.yml?branch=foxy) | [Documentation](https://control.ros.org) <br /> [API Reference](https://control.ros.org/rolling/api/) | [ros2_control_demos](https://index.ros.org/p/ros2_control_demos/#foxy)
+ROS2 Distro | Branch | Build status | Documentation
+:---------: | :----: | :----------: | :-----------:
+**Rolling** | [`master`](https://github.com/ros-controls/ros2_control_demos/tree/rolling) | [![Rolling Binary Build](https://github.com/ros-controls/ros2_control_demos/actions/workflows/rolling-binary-build.yml/badge.svg?branch=master)](https://github.com/ros-controls/ros2_control_demos/actions/workflows/rolling-binary-build.yml?branch=master) <br /> [![Rolling Semi-Binary Build](https://github.com/ros-controls/ros2_control_demos/actions/workflows/rolling-semi-binary-build.yml/badge.svg?branch=master)](https://github.com/ros-controls/ros2_control_demos/actions/workflows/rolling-semi-binary-build.yml?branch=master) <br /> [![Rolling Source Build](https://github.com/ros-controls/ros2_control_demos/actions/workflows/rolling-source-build.yml/badge.svg?branch=master)](https://github.com/ros-controls/ros2_control_demos/actions/workflows/rolling-source-build.yml?branch=master) | [Documentation](https://control.ros.org) <br /> [API Reference](https://control.ros.org/rolling/api/)
+**Rolling - last Focal** | [`master`](https://github.com/ros-controls/ros2_control_demos/tree/rolling) | [![Rolling Binary Build](https://github.com/ros-controls/ros2_control_demos/actions/workflows/rolling-binary-build-last-focal.yml/badge.svg?branch=master)](https://github.com/ros-controls/ros2_control_demos/actions/workflows/rolling-binary-build-last-focal.yml?branch=master) <br /> [![Rolling Semi-Binary Build](https://github.com/ros-controls/ros2_control_demos/actions/workflows/rolling-semi-binary-build-last-focal.yml/badge.svg?branch=master)](https://github.com/ros-controls/ros2_control_demos/actions/workflows/rolling-semi-binary-build-last-focal.yml?branch=master) | [Documentation](https://control.ros.org) <br /> [API Reference](https://control.ros.org/rolling/api/)
+**Galactic** | [`galactic`](https://github.com/ros-controls/ros2_control_demos/tree/galactic) | [![Galactic Binary Build](https://github.com/ros-controls/ros2_control_demos/actions/workflows/galactic-binary-build.yml/badge.svg?branch=galactic)](https://github.com/ros-controls/ros2_control_demos/actions/workflows/galactic-binary-build.yml?branch=galactic) <br /> [![Galactic Semi-Binary Build](https://github.com/ros-controls/ros2_control_demos/actions/workflows/galactic-semi-binary-build.yml/badge.svg?branch=galactic)](https://github.com/ros-controls/ros2_control_demos/actions/workflows/galactic-semi-binary-build.yml?branch=galactic) <br /> [![Galactic Source Build](https://github.com/ros-controls/ros2_control_demos/actions/workflows/galactic-source-build.yml/badge.svg?branch=galactic)](https://github.com/ros-controls/ros2_control_demos/actions/workflows/galactic-source-build.yml?branch=galactic) | [Documentation](https://control.ros.org) <br /> [API Reference](https://control.ros.org/rolling/api/)
+**Foxy** | [`foxy`](https://github.com/ros-controls/ros2_control_demos/tree/foxy) | [![Foxy Binary Build](https://github.com/ros-controls/ros2_control_demos/actions/workflows/foxy-binary-build.yml/badge.svg?branch=foxy)](https://github.com/ros-controls/ros2_control_demos/actions/workflows/foxy-binary-build.yml?branch=foxy) <br /> [![Foxy Semi-Binary Build](https://github.com/ros-controls/ros2_control_demos/actions/workflows/foxy-semi-binary-build.yml/badge.svg?branch=foxy)](https://github.com/ros-controls/ros2_control_demos/actions/workflows/foxy-semi-binary-build.yml?branch=foxy) <br /> [![Foxy Source Build](https://github.com/ros-controls/ros2_control_demos/actions/workflows/foxy-source-build.yml/badge.svg?branch=foxy)](https://github.com/ros-controls/ros2_control_demos/actions/workflows/foxy-source-build.yml?branch=foxy) | [Documentation](https://control.ros.org) <br /> [API Reference](https://control.ros.org/rolling/api/)
 
 ### Explanation of different build types
 
@@ -122,13 +131,13 @@ The *RRBot* URDF files can be found in the `urdf` folder of `rrbot_description` 
    The `joint_state_publisher_gui` provides a GUI to generate  a random configuration for rrbot. It is immediately displayed in `Rviz`.
 
 
-1. To start *RRBot* example open open a terminal, source your ROS2-workspace and execute its launch file with:
+1. To start *RRBot* example open a terminal, source your ROS2-workspace and execute its launch file with:
    ```
    ros2 launch ros2_control_demo_bringup rrbot.launch.py
    ```
    The launch file loads and starts the robot hardware, controllers and opens `RViz`.
    In starting terminal you will see a lot of output from the hardware implementation showing its internal states.
-   This is only of exemplary purpuses and should be avoided as much as possible in a hardware interface implementation.
+   This is only of exemplary purposes and should be avoided as much as possible in a hardware interface implementation.
 
    If you can see two orange and one yellow rectangle in in `RViz` everything has started properly.
    Still, to be sure, let's introspect the control system before moving *RRBot*.
@@ -244,7 +253,7 @@ The *DiffBot* URDF files can be found in `urdf` folder of `diffbot_description` 
 
 1. If everything is fine, now you can send a command to *Diff Drive Controller* using ros2 cli interface:
    ```
-   ros2 topic pub --rate 30 /cmd_vel geometry_msgs/msg/Twist "linear:
+   ros2 topic pub --rate 30 /diffbot_base_controller/cmd_vel_unstamped geometry_msgs/msg/Twist "linear:
     x: 0.7
     y: 0.0
     z: 0.0
@@ -346,6 +355,7 @@ This also demonstrates how launch files are usually reused for different scenari
 Files:
   - Launch file: [rrbot_system_position_only.launch.py](ros2_control_demo_bringup/launch/rrbot_system_position_only.launch.py)
   - Controllers yaml: [rrbot_controllers.yaml](ros2_control_demo_bringup/config/rrbot_controllers.yaml)
+  - URDF:  [rrbot_system_position_only.urdf.xacro](ros2_control_demos/ros2_control_demo_description/rrbot_description/urdf/rrbot_system_position_only.urdf.xacro)
   - `ros2_control` URDF tag: [rrbot_system_position_only.ros2_control.xacro](ros2_control_demo_description/rrbot_description/ros2_control/rrbot_system_position_only.ros2_control.xacro)
 
 Interfaces:
@@ -379,6 +389,7 @@ Available launch file options:
 Files:
   - Launch file: [rrbot_system_multi_interface.launch.py](ros2_control_demo_bringup/launch/rrbot_system_multi_interface.launch.py)
   - Controllers yaml: [rrbot_multi_interface_forward_controllers.yaml](ros2_control_demo_bringup/config/rrbot_multi_interface_forward_controllers.yaml)
+  - URDF: [rrbot_system_multi_interface.urdf.xacro](ros2_control_demo_description/rrbot_description/urdf/rrbot_system_multi_interface.urdf.xacro)
   - `ros2_control` URDF tag: [rrbot_system_multi_interface.ros2_control.xacro](ros2_control_demo_description/rrbot_description/ros2_control/rrbot_system_multi_interface.ros2_control.xacro)
 
 Interfaces:
@@ -434,7 +445,8 @@ Useful launch-file options:
 ### Example 3: "Industrial robot with integrated sensor"
 
 - Launch file: [rrbot_system_with_sensor.launch.py](ros2_control_demo_bringup/launch/rrbot_system_with_sensor.launch.py)
-- URDF: [rrbot_system_with_sensor.urdf.xacro](ros2_control_demo_bringup/config/rrbot_with_sensor_controllers.yaml)
+- Controllers: [rrbot_with_sensor_controllers.yaml](ros2_control_demo_bringup/config/rrbot_with_sensor_controllers.yaml)
+- URDF: [rrbot_system_with_sensor.urdf.xacro](ros2_control_demo_description/rrbot_description/urdf/rrbot_system_with_sensor.urdf.xacro)
 - ros2_control URDF: [rrbot_system_with_sensor.ros2_control.xacro](ros2_control_demo_description/rrbot_description/ros2_control/rrbot_system_with_sensor.ros2_control.xacro)
 
 - Command interfaces:
@@ -465,8 +477,11 @@ ros2 topic echo /fts_broadcaster/wrench
 ### Example 4: "Industrial Robots with externally connected sensor"
 
 - Launch file: [rrbot_system_with_external_sensor.launch.py](ros2_control_demo_bringup/launch/rrbot_system_with_external_sensor.launch.py)
-- URDF: [rrbot_with_external_sensor_controllers.urdf.xacro](ros2_control_demo_bringup/config/rrbot_with_external_sensor_controllers.yaml)
-- ros2_control URDF: [external_rrbot_force_torque_sensor.ros2_control.xacro](ros2_control_demo_description/rrbot_description/ros2_control/external_rrbot_force_torque_sensor.ros2_control.xacro)
+- Controllers: [rrbot_with_external_sensor_controllers.yaml](ros2_control_demo_bringup/config/rrbot_with_external_sensor_controllers.yaml)
+- URDF: [rrbot_with_external_sensor_controllers.urdf.xacro](ros2_control_demo_description/rrbot_description/urdf/rrbot_with_external_sensor_controllers.urdf.xacro)
+- ros2_control URDF:
+  - robot: [rrbot_system_position_only.ros2_control.xacro](ros2_control_demo_description/rrbot_description/ros2_control/rrbot_system_position_only.ros2_control.xacro)
+  - sensor: [external_rrbot_force_torque_sensor.ros2_control.xacro](ros2_control_demo_description/rrbot_description/ros2_control/external_rrbot_force_torque_sensor.ros2_control.xacro)
 
 - Command interfaces:
   - joint1/position
@@ -497,7 +512,8 @@ ros2 topic echo /fts_broadcaster/wrench
 ### Example 5: "Modular Robots with separate communication to each actuator"
 
 - Launch file: [rrbot_modular_actuators.launch.py](ros2_control_demo_bringup/launch/rrbot_modular_actuators.launch.py)
-- URDF: [rrbot_modular_actuators.urdf.xacro](ros2_control_demo_bringup/config/rrbot_modular_actuators.yaml)
+- Controllers: [rrbot_modular_actuators.yaml](ros2_control_demo_bringup/config/rrbot_modular_actuators.yaml)
+- URDF: [rrbot_modular_actuators.urdf.xacro](ros2_control_demo_description/rrbot_description/urdf/rrbot_modular_actuators.urdf.xacro)
 - ros2_control URDF: [rrbot_modular_actuators.ros2_control.xacro](ros2_control_demo_description/rrbot_description/ros2_control/rrbot_modular_actuators.ros2_control.xacro)
 
 - Command interfaces:
@@ -517,7 +533,7 @@ Commanding the robot: see the commands below.
 ## Controllers and moving hardware
 
 To move the robot you should load and start controllers.
-The `JointStateController` is used to publish the joint states to ROS topics.
+The `JointStateBroadcaster` is used to publish the joint states to ROS topics.
 Direct joint commands are sent to this robot via the `ForwardCommandController` and `JointTrajectoryController`.
 The sections below describe their usage.
 Check the [Results](##result) section on how to ensure that things went well.
@@ -528,11 +544,11 @@ ros2 control list_controllers
 ```
 
 
-### JointStateController
+### JointStateBroadcaster
 
-Open another terminal and load, configure and start `joint_state_controller`:
+Open another terminal and load, configure and start `joint_state_broadcaster`:
 ```
-ros2 control set_controller_state joint_state_controller start
+ros2 control set_controller_state joint_state_broadcaster start
 ```
 Check if controller is loaded properly:
 ```
@@ -540,7 +556,7 @@ ros2 control list_controllers
 ```
 You should get the response:
 ```
-joint_state_controller[joint_state_controller/JointStateController] active
+joint_state_broadcaster[joint_state_broadcaster/JointStateBroadcaster] active
 ```
 
 Now you should also see the *RRbot* represented correctly in `RViz`.
@@ -580,7 +596,7 @@ Now you should also see the *RRbot* represented correctly in `RViz`.
    ```
    You should get `active` in the response:
    ```
-   joint_state_controller[joint_state_controller/JointStateController] active
+   joint_state_broadcaster[joint_state_broadcaster/JointStateBroadcaster] active
    forward_position_controller[forward_command_controller/ForwardCommandController] active
    ```
 
@@ -623,13 +639,13 @@ Now you should also see the *RRbot* represented correctly in `RViz`.
    ```
    You should get `active` in the response:
    ```
-   joint_state_controller[joint_state_controller/JointStateController] active
+   joint_state_broadcaster[joint_state_broadcaster/JointStateBroadcaster] active
    position_trajectory_controller[joint_trajectory_controller/JointTrajectoryController] active
    ```
 
-3. Send a command to the controller using demo node which sends two goals every 5 seconds in a loop:
+3. Send a command to the controller using demo node which sends four goals every 6 seconds in a loop:
    ```
-   ros2 launch ros2_control_demo_bringup test_forward_position_controller.launch.py
+   ros2 launch ros2_control_demo_bringup test_joint_trajectory_controller.launch.py
    ```
    You can adjust the goals in [rrbot_joint_trajectory_publisher.yaml](ros2_control_demo_bringup/config/rrbot_joint_trajectory_publisher.yaml).
 

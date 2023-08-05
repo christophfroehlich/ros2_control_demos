@@ -73,7 +73,7 @@ def generate_launch_description():
     )
     declared_arguments.append(
         DeclareLaunchArgument(
-            "use_sim",
+            "use_gazebo",
             default_value="false",
             description="Start robot in Gazebo simulation.",
         )
@@ -87,7 +87,7 @@ def generate_launch_description():
     )
     declared_arguments.append(
         DeclareLaunchArgument(
-            "fake_sensor_commands",
+            "mock_sensor_commands",
             default_value="false",
             description="Enable fake command interfaces for sensors used for simple simulations. \
             Used only if 'use_fake_hardware' parameter is true.",
@@ -128,9 +128,9 @@ def generate_launch_description():
     description_package = LaunchConfiguration("description_package")
     description_file = LaunchConfiguration("description_file")
     prefix = LaunchConfiguration("prefix")
-    use_sim = LaunchConfiguration("use_sim")
+    use_gazebo = LaunchConfiguration("use_gazebo")
     use_fake_hardware = LaunchConfiguration("use_fake_hardware")
-    fake_sensor_commands = LaunchConfiguration("fake_sensor_commands")
+    mock_sensor_commands = LaunchConfiguration("mock_sensor_commands")
     slowdown = LaunchConfiguration("slowdown")
     controller_manager_name = LaunchConfiguration("controller_manager_name")
     robot_controller = LaunchConfiguration("robot_controller")
@@ -148,14 +148,14 @@ def generate_launch_description():
             "prefix:=",
             prefix,
             " ",
-            "use_sim:=",
-            use_sim,
+            "use_gazebo:=",
+            use_gazebo,
             " ",
             "use_fake_hardware:=",
             use_fake_hardware,
             " ",
-            "fake_sensor_commands:=",
-            fake_sensor_commands,
+            "mock_sensor_commands:=",
+            mock_sensor_commands,
             " ",
             "slowdown:=",
             slowdown,
@@ -179,10 +179,7 @@ def generate_launch_description():
         executable="ros2_control_node",
         namespace=namespace,
         parameters=[robot_description, robot_controllers],
-        output={
-            "stdout": "screen",
-            "stderr": "screen",
-        },
+        output="both",
     )
     robot_state_pub_node = Node(
         package="robot_state_publisher",
