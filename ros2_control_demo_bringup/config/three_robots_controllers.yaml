@@ -2,13 +2,14 @@ controller_manager:
   ros__parameters:
     update_rate: 100  # Hz
 
-    # Decide which hardware component should be started immediately
-    autostart_components:
-      - RRBotSystemPositionOnly
-      - ExternalRRBotFTSensor
-    # Decide which hardware component should start configured
-    autoconfigure_components:
-      - RRBotSystemWithSensor
+    hardware_components_initial_state:
+      unconfigured:
+      # Decide which hardware component will be only loaded
+        - FakeThreeDofBot
+      inactive:
+        # Decide which hardware component will start configured
+        - RRBotSystemWithSensor
+      # not listed hardware component should be started immediately
 
     # Global controllers
     joint_state_broadcaster:
