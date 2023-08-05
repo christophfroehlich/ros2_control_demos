@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Stogl Robotics Consulting UG (haftungsbeschränkt)
+# Copyright (c) 2022, Stogl Robotics Consulting UG (haftungsbeschränkt)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,14 +25,13 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
     # Declare arguments
-    declared_arguments = []
-    declared_arguments.append(
+    declared_arguments = [
         DeclareLaunchArgument(
             "slowdown",
             default_value="50.0",
             description="Slowdown factor of the RRbot.",
         )
-    )
+    ]
 
     # Initialize Arguments
     slowdown = LaunchConfiguration("slowdown")
