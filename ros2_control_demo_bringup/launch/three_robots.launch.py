@@ -140,7 +140,7 @@ def generate_launch_description():
             "rrbot_with_sensor_position_controller",
             "-c",
             "/controller_manager",
-            "--stopped",
+            "--inactive",
         ],
     )
     rrbot_with_sensor_fts_broadcaster_spawner = Node(
@@ -157,18 +157,18 @@ def generate_launch_description():
             "threedofbot_joint_state_broadcaster",
             "-c",
             "/controller_manager",
-            "--stopped",
+            "--inactive",
         ],
     )
     threedofbot_position_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["threedofbot_position_controller", "-c", "/controller_manager", "--stopped"],
+        arguments=["threedofbot_position_controller", "-c", "/controller_manager", "--inactive"],
     )
     threedofbot_pid_gain_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["threedofbot_pid_gain_controller", "-c", "/controller_manager", "--stopped"],
+        arguments=["threedofbot_pid_gain_controller", "-c", "/controller_manager", "--inactive"],
     )
 
     # Command publishers
