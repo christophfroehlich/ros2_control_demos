@@ -17,7 +17,7 @@ import pandas as pd
 import rclpy
 from trajectory_msgs.msg import JointTrajectoryPoint
 from rclpy.node import Node
-from builtin_interfaces.msg import Duration
+from builtin_interfaces.msg import Duration, Time
 import sys
 import signal
 from rclpy.action import ActionClient
@@ -81,7 +81,7 @@ class TrajectoryActionClient(Node):
         self.input_equals("\nStart the trajectory by pressing enter", "")
         goal_msg = FollowJointTrajectory.Goal()
         goal_msg.trajectory.joint_names = self.joint_names_
-        goal_msg.trajectory.header.stamp = self.get_clock().now().to_msg()
+        goal_msg.trajectory.header.stamp = Time(sec=0, nanosec=0)  # start now
 
         # get points from csv data
         offset_idx = self.nrJoints
