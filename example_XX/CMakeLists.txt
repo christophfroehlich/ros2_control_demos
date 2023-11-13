@@ -9,11 +9,12 @@ endif()
 set(THIS_PACKAGE_INCLUDE_DEPENDS
   pluginlib
   rclcpp
-  rclcpp_lifecycle
+  rclpy
 )
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
@@ -26,6 +27,14 @@ install(
 install(
   DIRECTORY bringup/launch bringup/config
   DESTINATION share/ros2_control_demo_example_xx
+)
+
+# Install Python modules
+ament_python_install_package(${PROJECT_NAME})
+# Install Python executables
+install(PROGRAMS
+  scripts/trajectory_action_client.py
+  DESTINATION lib/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)
