@@ -8,19 +8,19 @@
           <geometry>
             <box size="${width} ${width} ${height}"/>
           </geometry>
-          <origin xyz="0 0 ${height/2}"/>
+          <origin xyz="0 0 -${height/2}"/>
         </collision>
         <visual>
           <geometry>
             <box size="${width} ${width} ${height}"/>
           </geometry>
-          <origin xyz="0 0 ${height/2}"/>
+          <origin xyz="0 0 -${height/2}"/>
           <material name="blue">
             <color rgba="0 0 .8 1"/>
           </material>
         </visual>
         <inertial>
-          <origin xyz="0 0 ${height/2}" rpy="0 0 0"/>
+          <origin xyz="0 0 -${height/2}" rpy="0 0 0"/>
           <mass value="${mass}"/>
           <inertia
             ixx="${mass / 12.0 * (width*width + height*height)}" ixy="0.0" ixz="0.0"
@@ -48,7 +48,7 @@
 
     <xacro:quadr_block name="cart" mass="10" width="0.5" height="0.2"/>
 
-    <xacro:quadr_block name="pendulum" mass="1" width="0.2" height="1.0"/>
+    <xacro:quadr_block name="pendulum" mass="1.1" width="0.02" height="1.0"/>
 
     <joint name="world_to_base" type="fixed">
       <origin rpy="0 0 0" xyz="0 0 1"/>
@@ -58,20 +58,20 @@
 
     <joint name="slider_to_cart" type="prismatic">
       <axis xyz="1 0 0"/>
-      <origin xyz="0.0 0.0 0.0"/>
+      <origin xyz="0.0 0.0 0.2"/>
       <parent link="slideBar"/>
       <child link="cart"/>
-      <limit effort="1000.0" lower="-15" upper="15" velocity="30"/>
+      <limit effort="1000.0" lower="-15" upper="15" velocity="50"/>
       <dynamics damping="0.3" friction="0.0"/>
     </joint>
 
     <joint name="cart_to_pendulum" type="continuous">
-      <axis xyz="0 1 0"/>
-      <origin xyz="0.0 0.35 0.1" rpy="0 3.1415926536 0"/>
+      <axis xyz="0 -1 0"/>
+      <origin xyz="0.0 0.26 -0.1" rpy="0 0 0"/>
       <parent link="cart"/>
       <child link="pendulum"/>
       <limit effort="10000.0" velocity="100000"/>
-      <dynamics damping="0.1" friction="0.0"/>
+      <dynamics damping="0.0" friction="0.0"/>
     </joint>
 
   </xacro:macro>
