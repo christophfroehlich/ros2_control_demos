@@ -85,12 +85,11 @@ class TrajectoryActionClient(Node):
 
         # get points from csv data
         offset_idx = self.nrJoints
-        duration_in_seconds = 0
         for i_traj in range(self.trajLen):
             traj_point_message = JointTrajectoryPoint()
             traj_point_message.positions = [0.0] * self.nrJoints
             traj_point_message.velocities = [0.0] * self.nrJoints
-            duration_in_seconds = duration_in_seconds + self.Data_array[i_traj, 0]
+            duration_in_seconds = self.Data_array[i_traj, 0]
             for i_pos in range(self.nrJoints):
                 traj_point_message.positions[i_pos] = self.Data_array[
                     i_traj, 1 + self.map_joints[i_pos]
