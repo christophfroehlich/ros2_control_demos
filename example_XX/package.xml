@@ -21,6 +21,7 @@
   <depend>rclpy</depend>
   <depend>generate_parameter_library</depend>
   <depend>joint_trajectory_controller_plugins</depend>
+  <depend>eigen</depend>
 
   <exec_depend>python3-pandas</exec_depend>
 

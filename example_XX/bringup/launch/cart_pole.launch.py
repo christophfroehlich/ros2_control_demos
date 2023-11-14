@@ -35,7 +35,7 @@ def generate_launch_description():
                 "/gazebo.launch.py",
             ]
         ),
-        launch_arguments={"pause": "true"}.items(),
+        launch_arguments={"pause": "false"}.items(),
     )
 
     ros2_control_demo_example_xx_path = os.path.join(

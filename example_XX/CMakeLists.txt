@@ -10,7 +10,6 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   pluginlib
   generate_parameter_library
   joint_trajectory_controller_plugins
-  control_toolbox
   trajectory_msgs
   rclcpp
   rclpy

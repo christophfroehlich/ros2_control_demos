@@ -8,30 +8,24 @@ ros2_control_demo_example_xx:
       size_gt<>: [0],
     }
   }
-  gains:
-    __map_command_joints:
-      p: {
-        type: double,
-        default_value: 0.0,
-        description: "Proportional gain for PID"
-      }
-      i: {
-        type: double,
-        default_value: 0.0,
-        description: "Integral gain for PID"
-      }
-      d: {
-        type: double,
-        default_value: 0.0,
-        description: "Derivative gain for PID"
-      }
-      i_clamp: {
-        type: double,
-        default_value: 0.0,
-        description: "Integral clamp. Symmetrical in both positive and negative direction."
-      }
-      ff_velocity_scale: {
-        type: double,
-        default_value: 0.0,
-        description: "Feed-forward scaling of velocity."
-      }
+  system:
+    lS: {
+      type: double,
+      default_value: 1.0,
+      description: "Length of the pole"
+    }
+    mS: {
+      type: double,
+      default_value: 1.1,
+      description: "mass of the pole"
+    }
+    IzzS: {
+      type: double,
+      default_value: 0.09,
+      description: "moment of inertia of the pendulum about its center of mass"
+    }
+    g: {
+      type: double,
+      default_value: 9.81,
+      description: "gravitational constant"
+    }
