@@ -24,6 +24,8 @@ trajectory_controllers:
       - position
       - velocity
 
+    controller_plugin: ros2_control_demo_example_xx::CartpoleLqrTrajectoryPlugin
+
     gains:
       slider_to_cart:
         p: 1.0
