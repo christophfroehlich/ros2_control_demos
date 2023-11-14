@@ -75,6 +75,10 @@ class TrajectoryActionClient(Node):
         sys.stdout.flush()
 
         self.joint_names_ = self.get_parameter("joint_names").value
+
+        self.send_goal()
+
+    def send_goal(self):
         self.is_goal_rejected = False
         self.is_goal_accepted = False
 
@@ -141,6 +145,7 @@ class TrajectoryActionClient(Node):
         print(result.error_string)
         if result.error_code == result.SUCCESSFUL:
             print("Trajectory goal reached!")
+            self.send_goal()
 
     def get_feedback_callback(self, feedback):
 
