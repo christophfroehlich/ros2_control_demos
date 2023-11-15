@@ -16,16 +16,30 @@ ros2_control_demo_example_xx:
     }
     mS: {
       type: double,
-      default_value: 1.1,
+      default_value: 1.100,
       description: "mass of the pole"
     }
     IzzS: {
       type: double,
-      default_value: 0.09,
+      default_value: 0.092,
       description: "moment of inertia of the pendulum about its center of mass"
     }
     g: {
       type: double,
-      default_value: 9.81,
+      default_value: 9.80,
       description: "gravitational constant"
+    }
+  gains:
+    R: {
+      type: double,
+      default_value: 1.0,
+      description: "Cost on the control input"
+    }
+    Q: {
+      type: double_array,
+      default_value: [1.0, 1.0, 1.0, 1.0],
+      description: "Cost on the state, diagonal of matrix",
+      validation: {
+        fixed_size<>: [4],
+      }
     }

@@ -3,41 +3,45 @@
  <tabbed_widget parent="main_window" name="Main Window">
   <Tab containers="1" tab_name="Cart Pole">
    <Container>
-    <DockSplitter sizes="0.501449;0.498551" orientation="-" count="2">
-     <DockSplitter sizes="0.50032;0.49968" orientation="|" count="2">
+    <DockSplitter count="2" sizes="0.502252;0.497748" orientation="-">
+     <DockSplitter count="2" sizes="0.5;0.5" orientation="|">
       <DockArea name="...">
-       <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
-        <range bottom="-1.076837" left="131.248966" top="0.030729" right="141.246018"/>
+       <plot style="Lines" flip_y="false" flip_x="false" mode="TimeSeries">
+        <range bottom="-16.047744" top="16.047744" right="14.993522" left="0.000000"/>
         <limitY/>
         <curve color="#1f77b4" name="/joint_states/slider_to_cart/position"/>
         <curve color="#d62728" name="/trajectory_controllers/controller_state/reference/positions.0"/>
+        <curve color="#1fb425" name="/trajectory_controllers/controller_state/error/positions.0"/>
        </plot>
       </DockArea>
       <DockArea name="...">
-       <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
-        <range bottom="-1.197801" left="131.248966" top="0.845612" right="141.246018"/>
+       <plot style="Lines" flip_y="false" flip_x="false" mode="TimeSeries">
+        <range bottom="-402.645699" top="300.298271" right="14.993522" left="0.000000"/>
         <limitY/>
         <curve color="#1f77b4" name="/joint_states/slider_to_cart/velocity"/>
         <curve color="#d62728" name="/trajectory_controllers/controller_state/reference/velocities.0"/>
-        <curve color="#00ff21" name="/trajectory_controllers/controller_state/output/velocities.0"/>
+        <curve color="#ff00b8" name="/trajectory_controllers/controller_state/output/velocities.0"/>
+        <curve color="#1fb425" name="/trajectory_controllers/controller_state/error/velocities.0"/>
        </plot>
       </DockArea>
      </DockSplitter>
-     <DockSplitter sizes="0.502242;0.497758" orientation="|" count="2">
+     <DockSplitter count="2" sizes="0.502663;0.497337" orientation="|">
       <DockArea name="...">
-       <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
-        <range bottom="-3.068159" left="131.248966" top="3.307099" right="141.246018"/>
+       <plot style="Lines" flip_y="false" flip_x="false" mode="TimeSeries">
+        <range bottom="-39.005507" top="42.147099" right="14.993522" left="0.000000"/>
         <limitY/>
         <curve color="#1f77b4" name="/joint_states/cart_to_pendulum/position"/>
         <curve color="#d62728" name="/trajectory_controllers/controller_state/reference/positions.1"/>
+        <curve color="#27d63c" name="/trajectory_controllers/controller_state/error/positions.1"/>
        </plot>
       </DockArea>
       <DockArea name="...">
-       <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
-        <range bottom="-8.000198" left="131.248966" top="7.975261" right="141.246018"/>
+       <plot style="Lines" flip_y="false" flip_x="false" mode="TimeSeries">
+        <range bottom="-336.185004" top="336.185004" right="14.993522" left="0.000000"/>
         <limitY/>
         <curve color="#1f77b4" name="/joint_states/cart_to_pendulum/velocity"/>
         <curve color="#d62728" name="/trajectory_controllers/controller_state/reference/velocities.1"/>
+        <curve color="#1ac938" name="/trajectory_controllers/controller_state/error/velocities.1"/>
        </plot>
       </DockArea>
      </DockSplitter>

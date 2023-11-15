@@ -27,9 +27,33 @@ trajectory_controllers:
     controller_plugin: ros2_control_demo_example_xx::CartpoleLqrTrajectoryPlugin
 
     gains:
+      R: 1.0
+      Q: [1.0, 1.0, 1.0, 1.0]
+      cart_to_pendulum:
+        angle_wraparound: true
+
+trajectory_controllers_pid:
+  ros__parameters:
+    joints:
+      - slider_to_cart
+      - cart_to_pendulum
+
+    command_joints:
+      - slider_to_cart
+
+    command_interfaces:
+      - velocity
+
+    state_interfaces:
+      - position
+      - velocity
+
+    gains:
       slider_to_cart:
         p: 1.0
         i: 0.0
         d: 0.0
         i_clamp: 0.0
         ff_velocity_scale: 1.0
+      cart_to_pendulum:
+        angle_wraparound: true

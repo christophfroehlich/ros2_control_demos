@@ -89,35 +89,55 @@ bool CartpoleLqrTrajectoryPlugin::activate()
   return true;
 };
 
+Eigen::Vector<double, NUM_STATES> get_state_from_point(
+  trajectory_msgs::msg::JointTrajectoryPoint point)
+{
+  // TODO(anyone) create map to get the correct joint order
+  return Eigen::Vector<double, NUM_STATES>{
+    point.positions[1], point.velocities[1], point.positions[0], point.velocities[0]};
+}
+
 bool CartpoleLqrTrajectoryPlugin::computeControlLawNonRT_impl(
   const std::shared_ptr<trajectory_msgs::msg::JointTrajectory> & trajectory)
 {
   // parameters
-  auto Q = Eigen::Matrix<double, 2, 2>::Identity();
-  auto R = Eigen::Matrix<double, 1, 1>::Identity();
-  auto N = Eigen::Matrix<double, 1, 2>::Zero();
+  Eigen::Vector<double, NUM_STATES> Q_diag{params_.gains.Q.data()};
+  Eigen::Matrix<double, NUM_STATES, NUM_STATES> Q(Q_diag.asDiagonal());
+  Eigen::Matrix<double, 1, 1> R{params_.gains.R};
+  std::cout << "Q: " << std::endl << Q << std::endl;
+  std::cout << "R: " << std::endl << R << std::endl;
+  auto N = Eigen::Matrix<double, 1, NUM_STATES>::Zero();
 
-  Eigen::Matrix<double, 1, 2> Ks;
-  Eigen::Matrix<double, 2, 2> Ps;
+  Eigen::Matrix<double, 1, NUM_STATES> Ks;
+  Eigen::Matrix<double, NUM_STATES, NUM_STATES> Ps;
+  auto x_R = get_state_from_point(trajectory->points.back());
+  Eigen::Vector<double, 1> u_R{0};
+  calcLQR_steady(x_R, u_R, Q, R, N, Ks, Ps);
+  std::cout << "Ks: " << Ks << std::endl;
+  std::cout << "Ps: " << Ps << std::endl;
 
-  calcLQR_steady(Eigen::Vector2d::Zero(), Eigen::Vector2d::Zero(), Q, R, N, Ks, Ps);
-
-  Eigen::Matrix<double, 1, 2> K;
-  Eigen::Matrix<double, 2, 2> Phi;
-  Eigen::Matrix<double, 2, 1> Gamma;
-  Eigen::Matrix<double, 2, 2> C;
+  Eigen::Matrix<double, 1, NUM_STATES> K;
+  Eigen::Matrix<double, NUM_STATES, NUM_STATES> Phi;
+  Eigen::Matrix<double, NUM_STATES, 1> Gamma;
+  Eigen::Matrix<double, NUM_STATES, NUM_STATES> C;
   C.setIdentity();
-  Eigen::Matrix<double, 2, 2> P(Ps), P_new;
+  Eigen::Matrix<double, NUM_STATES, NUM_STATES> P(Ps), P_new;
   // TODO(christophfroehlich) use a buffer to switch from RT thread to new gain
   K_vec_.clear();
   time_vec_.clear();
+  double x_dot_old = 0;
+  Eigen::Vector<double, NUM_STATES> x;
+  Eigen::Vector<double, 1> u;
 
   // iterate Riccati equation
   for (const auto & point : trajectory->points)
   {
-    // TODO(christophfroehlich) get x_DDot
-    // TODO(christophfroehlich) create map to get the correct joint position
-    get_linear_system_matrices(point.positions[1], 0.0, dt, Phi, Gamma);
+    x = get_state_from_point(point);
+    // get x_ddot for trajectory
+    u[0] = (x(3) - x_dot_old) / dt;
+    x_dot_old = x(3);
+
+    get_linear_system_matrices(x, u, dt, Phi, Gamma);
     K = -(R + Gamma.transpose() * P * Gamma).inverse() * (N + Gamma.transpose() * P * Phi);
     P_new = (Q + Phi.transpose() * P * Phi) + (N + Gamma.transpose() * P * Phi).transpose() * K;
     P = 0.5 * (P_new + P_new.transpose());
@@ -129,29 +149,28 @@ bool CartpoleLqrTrajectoryPlugin::computeControlLawNonRT_impl(
 
   for (const auto & mat : K_vec_)
   {
-    std::cout << "K: " << mat << std::endl;
+    std::cout << "K: " << std::endl << mat << std::endl;
   }
 
   return true;
 }
 
 void CartpoleLqrTrajectoryPlugin::calcLQR_steady(
-  Eigen::Vector2d q, Eigen::Vector2d qDot, Eigen::Matrix<double, 2, 2> Q,
-  Eigen::Matrix<double, 1, 1> R, Eigen::Matrix<double, 1, 2> N, Eigen::Matrix<double, 1, 2> & Ks,
-  Eigen::Matrix<double, 2, 2> & Ps)
+  Eigen::Vector<double, NUM_STATES> x, Eigen::Vector<double, 1> u,
+  Eigen::Matrix<double, NUM_STATES, NUM_STATES> Q, Eigen::Matrix<double, 1, 1> R,
+  Eigen::Matrix<double, 1, NUM_STATES> N, Eigen::Matrix<double, 1, NUM_STATES> & Ks,
+  Eigen::Matrix<double, NUM_STATES, NUM_STATES> & Ps)
 {
-  Eigen::Matrix<double, 2, 2> Phi;
-  Eigen::Matrix<double, 2, 1> Gamma;
-  Eigen::Matrix<double, 2, 2> C;
+  Eigen::Matrix<double, NUM_STATES, NUM_STATES> Phi;
+  Eigen::Matrix<double, NUM_STATES, 1> Gamma;
+  Eigen::Matrix<double, NUM_STATES, NUM_STATES> C;
   C.setIdentity();
 
-  double theta = q[1];
-
-  get_linear_system_matrices(theta, 0.0, dt, Phi, Gamma);
+  get_linear_system_matrices(x, u, dt, Phi, Gamma);
 
   // solve steady-state Riccati equation iteratively
-  Eigen::Matrix<double, 2, 2> P, P_new;
-  Eigen::Matrix<double, 1, 2> K;
+  Eigen::Matrix<double, NUM_STATES, NUM_STATES> P, P_new;
+  Eigen::Matrix<double, 1, NUM_STATES> K;
   P.setIdentity();
 
   P = P * 1e5;  // initial value of P
@@ -160,8 +179,8 @@ void CartpoleLqrTrajectoryPlugin::calcLQR_steady(
   {
     K = -(R + Gamma.transpose() * P * Gamma).inverse() * (N + Gamma.transpose() * P * Phi);
     P_new = (Q + Phi.transpose() * P * Phi) + (N + Gamma.transpose() * P * Phi).transpose() * K;
-    if ((P_new - P).norm() < 1e-3)
-    {  // abort criterium
+    if ((P_new - P).norm() < 1e-3)  // abort criterium
+    {
       break;
     }
     P = 0.5 * (P_new + P_new.transpose());
@@ -191,8 +210,7 @@ void CartpoleLqrTrajectoryPlugin::computeCommands(
 {
   if (K_vec_.size() > 0)
   {
-    // TODO(christophfroehlich) create map to get the correct joint from error
-    Eigen::Vector2d e{error.positions[1], error.velocities[1]};
+    auto e = get_state_from_point(error);
     // TODO(christophfroehlich) interpolate K from time
     auto it = std::upper_bound(time_vec_.begin(), time_vec_.end(), duration_since_start);
     int idx;
@@ -204,8 +222,17 @@ void CartpoleLqrTrajectoryPlugin::computeCommands(
     {
       idx = std::distance(time_vec_.begin(), it);
     }
-    // integrate acceleration from state feedback to velocity
-    u += period.seconds() * (K_vec_.at(idx).dot(e));
+    // integrate acceleration from state feedback to velocity. consider sign of e!
+    // u += period.seconds() * (K_vec_.at(idx).dot(-e));
+    // RCLCPP_INFO_STREAM_THROTTLE(
+    //   node_->get_logger(), *node_->get_clock(), 500, "K:" << K_vec_.at(idx));
+    // RCLCPP_INFO_STREAM_THROTTLE(
+    //   node_->get_logger(), *node_->get_clock(), 500, "e:" << -e);
+    // RCLCPP_INFO_STREAM_THROTTLE(
+    //   node_->get_logger(), *node_->get_clock(), 500, "a:" << dt*K_vec_.at(idx).dot(-e));
+    u += dt * (K_vec_.at(idx).dot(-e));
+    // RCLCPP_INFO_THROTTLE(
+    //   node_->get_logger(), *node_->get_clock(), 500, "u: %f", u);
     // set system input as desired velocity + integrated LQR control output
     tmp_command.at(map_cmd_to_joints_.at(0)) = desired.velocities.at(map_cmd_to_joints_.at(0)) + u;
   }
@@ -218,9 +245,13 @@ void CartpoleLqrTrajectoryPlugin::reset()
 }
 
 void CartpoleLqrTrajectoryPlugin::get_linear_system_matrices(
-  const double theta, const double x_ddot, const double dt, Eigen::Matrix<double, 2, 2> & Phi,
-  Eigen::Matrix<double, 2, 1> & Gamma)
+  Eigen::Vector<double, NUM_STATES> x, Eigen::Vector<double, 1> u, const double dt,
+  Eigen::Matrix<double, NUM_STATES, NUM_STATES> & Phi, Eigen::Matrix<double, NUM_STATES, 1> & Gamma)
 {
+  // states and input
+  double theta = x[0];
+  double x_ddot = u[0];
+
   // system parameters
   double lS = params_.system.lS;
   double mS = params_.system.mS;
@@ -228,18 +259,18 @@ void CartpoleLqrTrajectoryPlugin::get_linear_system_matrices(
   double IzzS = params_.system.IzzS;
 
   // Jacobians of continuous-time dynamics
-  Eigen::Matrix<double, 2, 2> J_x;
-  J_x(0, 0) = 0;
+  Eigen::Matrix<double, NUM_STATES, NUM_STATES> J_x =
+    Eigen::Matrix<double, NUM_STATES, NUM_STATES>::Zero();
   J_x(0, 1) = 1;
   J_x(1, 0) = -0.2e1 * lS * mS * (g * cos(theta) - sin(theta) * x_ddot) / (lS * lS * mS + 4 * IzzS);
-  J_x(1, 1) = 0;
+  J_x(2, 3) = 1;
 
-  Eigen::Matrix<double, 2, 1> J_u(2);
-  J_u(0, 0) = 0;
+  Eigen::Matrix<double, NUM_STATES, 1> J_u = Eigen::Matrix<double, NUM_STATES, 1>::Zero();
   J_u(1, 0) = -0.2e1 * lS * mS * cos(theta) / (lS * lS * mS + 4 * IzzS);
+  J_u(3, 0) = 1;
 
   // discrete-time linearized system matrices
-  Phi = Eigen::Matrix<double, 2, 2>::Identity() + dt * J_x;
+  Phi = Eigen::Matrix<double, NUM_STATES, NUM_STATES>::Identity() + dt * J_x;
   Gamma = dt * J_u;
 }
 

@@ -66,14 +66,17 @@ protected:
    */
   void updateGains();
 
+#define NUM_STATES 4
   void get_linear_system_matrices(
-    const double theta, const double x_ddot, const double dt, Eigen::Matrix<double, 2, 2> & A,
-    Eigen::Matrix<double, 2, 1> & B);
+    Eigen::Vector<double, NUM_STATES> x, Eigen::Vector<double, 1> u, const double dt,
+    Eigen::Matrix<double, NUM_STATES, NUM_STATES> & Phi,
+    Eigen::Matrix<double, NUM_STATES, 1> & Gamma);
   void calcLQR_steady(
-    Eigen::Vector2d q, Eigen::Vector2d qDot, Eigen::Matrix<double, 2, 2> Q,
-    Eigen::Matrix<double, 1, 1> R, Eigen::Matrix<double, 1, 2> N, Eigen::Matrix<double, 1, 2> & Ks,
-    Eigen::Matrix<double, 2, 2> & Ps);
-  std::vector<Eigen::Matrix<double, 1, 2>> K_vec_;
+    Eigen::Vector<double, NUM_STATES> q, Eigen::Vector<double, 1> u,
+    Eigen::Matrix<double, NUM_STATES, NUM_STATES> Q, Eigen::Matrix<double, 1, 1> R,
+    Eigen::Matrix<double, 1, NUM_STATES> N, Eigen::Matrix<double, 1, NUM_STATES> & Ks,
+    Eigen::Matrix<double, NUM_STATES, NUM_STATES> & Ps);
+  std::vector<Eigen::Matrix<double, 1, NUM_STATES>> K_vec_;
   std::vector<builtin_interfaces::msg::Duration> time_vec_;
   double u;
 
