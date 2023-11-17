@@ -7,6 +7,7 @@ endif()
 
 # find dependencies
 set(THIS_PACKAGE_INCLUDE_DEPENDS
+  backward_ros
   pluginlib
   generate_parameter_library
   joint_trajectory_controller_plugins

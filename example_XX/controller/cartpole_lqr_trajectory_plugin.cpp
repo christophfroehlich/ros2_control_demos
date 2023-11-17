@@ -80,19 +80,20 @@ bool CartpoleLqrTrajectoryPlugin::configure()
   reset();
 
   return true;
-};
+}
 
 bool CartpoleLqrTrajectoryPlugin::activate()
 {
   params_ = param_listener_->get_params();
   updateGains();
   return true;
-};
+}
 
 Eigen::Vector<double, NUM_STATES> get_state_from_point(
   trajectory_msgs::msg::JointTrajectoryPoint point)
 {
   // TODO(anyone) create map to get the correct joint order
+  // theta, theta_dot, x, x_dot
   return Eigen::Vector<double, NUM_STATES>{
     point.positions[1], point.velocities[1], point.positions[0], point.velocities[0]};
 }
@@ -101,62 +102,81 @@ bool CartpoleLqrTrajectoryPlugin::computeControlLawNonRT_impl(
   const std::shared_ptr<trajectory_msgs::msg::JointTrajectory> & trajectory)
 {
   // parameters
-  Eigen::Vector<double, NUM_STATES> Q_diag{params_.gains.Q.data()};
-  Eigen::Matrix<double, NUM_STATES, NUM_STATES> Q(Q_diag.asDiagonal());
-  Eigen::Matrix<double, 1, 1> R{params_.gains.R};
-  std::cout << "Q: " << std::endl << Q << std::endl;
-  std::cout << "R: " << std::endl << R << std::endl;
   auto N = Eigen::Matrix<double, 1, NUM_STATES>::Zero();
 
   Eigen::Matrix<double, 1, NUM_STATES> Ks;
   Eigen::Matrix<double, NUM_STATES, NUM_STATES> Ps;
   auto x_R = get_state_from_point(trajectory->points.back());
   Eigen::Vector<double, 1> u_R{0};
-  calcLQR_steady(x_R, u_R, Q, R, N, Ks, Ps);
-  std::cout << "Ks: " << Ks << std::endl;
-  std::cout << "Ps: " << Ps << std::endl;
+  calcLQR_steady(x_R, u_R, 0.1, Q_, R_, N, Ks, Ps);
+  // std::cout << "Ks: " << Ks << std::endl;
+  // std::cout << "Ps: " << Ps << std::endl;
 
-  Eigen::Matrix<double, 1, NUM_STATES> K;
-  Eigen::Matrix<double, NUM_STATES, NUM_STATES> Phi;
-  Eigen::Matrix<double, NUM_STATES, 1> Gamma;
-  Eigen::Matrix<double, NUM_STATES, NUM_STATES> C;
-  C.setIdentity();
-  Eigen::Matrix<double, NUM_STATES, NUM_STATES> P(Ps), P_new;
-  // TODO(christophfroehlich) use a buffer to switch from RT thread to new gain
-  K_vec_.clear();
-  time_vec_.clear();
-  double x_dot_old = 0;
-  Eigen::Vector<double, NUM_STATES> x;
-  Eigen::Vector<double, 1> u;
-
-  // iterate Riccati equation
-  for (const auto & point : trajectory->points)
+  if (trajectory->points.size() == 1)
   {
-    x = get_state_from_point(point);
-    // get x_ddot for trajectory
-    u[0] = (x(3) - x_dot_old) / dt;
-    x_dot_old = x(3);
-
-    get_linear_system_matrices(x, u, dt, Phi, Gamma);
-    K = -(R + Gamma.transpose() * P * Gamma).inverse() * (N + Gamma.transpose() * P * Phi);
-    P_new = (Q + Phi.transpose() * P * Phi) + (N + Gamma.transpose() * P * Phi).transpose() * K;
-    P = 0.5 * (P_new + P_new.transpose());
-    K_vec_.push_back(K);
-    time_vec_.push_back(point.time_from_start);
+    // use steady-state gain
+    K_vec_.push_back(Ks);
+    time_vec_.push_back(rclcpp::Duration::from_seconds(0.0));
   }
-  // could be more efficient using reverse iterator
-  std::reverse(K_vec_.begin(), K_vec_.end());
-
-  for (const auto & mat : K_vec_)
+  else
   {
-    std::cout << "K: " << std::endl << mat << std::endl;
+    Eigen::Matrix<double, 1, NUM_STATES> K;
+    Eigen::Matrix<double, NUM_STATES, NUM_STATES> Phi;
+    Eigen::Matrix<double, NUM_STATES, 1> Gamma;
+    Eigen::Matrix<double, NUM_STATES, NUM_STATES> C;
+    C.setIdentity();
+    Eigen::Matrix<double, NUM_STATES, NUM_STATES> P(Ps), P_new;
+    // TODO(christophfroehlich) use a buffer to switch from RT thread to new gain
+    K_vec_.clear();
+    time_vec_.clear();
+    Eigen::Vector<double, NUM_STATES> x_p1;
+    Eigen::Vector<double, NUM_STATES> x;
+    Eigen::Vector<double, 1> u{0};
+    auto get_time = [](const trajectory_msgs::msg::JointTrajectoryPoint & point)
+    { return point.time_from_start.sec + point.time_from_start.nanosec * 1e-9; };
+    double dt_traj;
+
+    // iterate Riccati equation, backwards in time
+    for (size_t i = trajectory->points.size(); i > 0; i--)
+    {
+      const trajectory_msgs::msg::JointTrajectoryPoint point = trajectory->points.at(i - 1);
+      x = get_state_from_point(point);
+      // system input acceleration, derivative of velocity
+      // we don't have acceleration in trajectory, so we have to calculate it
+      if (i == trajectory->points.size())
+      {
+        dt_traj = 0.1;
+        u[0] = 0.0;
+        x_p1 = x;
+      }
+      else
+      {
+        dt_traj = get_time(trajectory->points.at(i)) - get_time(point);
+        x_p1 = get_state_from_point(trajectory->points.at(i));
+        u[0] = (x_p1(3) - x(3)) / dt_traj;
+      }
+      get_linear_system_matrices(x, u, dt_traj, Phi, Gamma);
+
+      K = -(R_ + Gamma.transpose() * P * Gamma).inverse() * (N + Gamma.transpose() * P * Phi);
+      P_new = (Q_ + Phi.transpose() * P * Phi) + (N + Gamma.transpose() * P * Phi).transpose() * K;
+      P = 0.5 * (P_new + P_new.transpose());
+
+      K_vec_.push_back(K);
+      time_vec_.push_back(point.time_from_start);
+    }
+    // could be more efficient using reverse iterator in computeCommand
+    std::reverse(K_vec_.begin(), K_vec_.end());
   }
+
+  // for (const auto & mat : K_vec_) {
+  //   std::cout << "K: " << std::endl << mat << std::endl;
+  // }
 
   return true;
 }
 
 void CartpoleLqrTrajectoryPlugin::calcLQR_steady(
-  Eigen::Vector<double, NUM_STATES> x, Eigen::Vector<double, 1> u,
+  Eigen::Vector<double, NUM_STATES> x, Eigen::Vector<double, 1> u, double dt,
   Eigen::Matrix<double, NUM_STATES, NUM_STATES> Q, Eigen::Matrix<double, 1, 1> R,
   Eigen::Matrix<double, 1, NUM_STATES> N, Eigen::Matrix<double, 1, NUM_STATES> & Ks,
   Eigen::Matrix<double, NUM_STATES, NUM_STATES> & Ps)
@@ -179,8 +199,8 @@ void CartpoleLqrTrajectoryPlugin::calcLQR_steady(
   {
     K = -(R + Gamma.transpose() * P * Gamma).inverse() * (N + Gamma.transpose() * P * Phi);
     P_new = (Q + Phi.transpose() * P * Phi) + (N + Gamma.transpose() * P * Phi).transpose() * K;
-    if ((P_new - P).norm() < 1e-3)  // abort criterium
-    {
+    if ((P_new - P).norm() < 1e-3)
+    {  // abort criterium
       break;
     }
     P = 0.5 * (P_new + P_new.transpose());
@@ -200,7 +220,16 @@ bool CartpoleLqrTrajectoryPlugin::updateGainsRT()
   return true;
 }
 
-void CartpoleLqrTrajectoryPlugin::updateGains() {}
+void CartpoleLqrTrajectoryPlugin::updateGains()
+{
+  Eigen::Vector<double, NUM_STATES> Q_diag{params_.gains.Q.data()};
+  Q_ = Eigen::Matrix<double, NUM_STATES, NUM_STATES>{Q_diag.asDiagonal()};
+  R_ = Eigen::Matrix<double, 1, 1>{params_.gains.R};
+  dt_ = params_.dt;
+  std::cout << "Q: " << std::endl << Q_ << std::endl;
+  std::cout << "R: " << std::endl << R_ << std::endl;
+  std::cout << "dt: " << std::endl << dt_ << std::endl;
+}
 
 void CartpoleLqrTrajectoryPlugin::computeCommands(
   std::vector<double> & tmp_command, const trajectory_msgs::msg::JointTrajectoryPoint /*current*/,
@@ -223,16 +252,7 @@ void CartpoleLqrTrajectoryPlugin::computeCommands(
       idx = std::distance(time_vec_.begin(), it);
     }
     // integrate acceleration from state feedback to velocity. consider sign of e!
-    // u += period.seconds() * (K_vec_.at(idx).dot(-e));
-    // RCLCPP_INFO_STREAM_THROTTLE(
-    //   node_->get_logger(), *node_->get_clock(), 500, "K:" << K_vec_.at(idx));
-    // RCLCPP_INFO_STREAM_THROTTLE(
-    //   node_->get_logger(), *node_->get_clock(), 500, "e:" << -e);
-    // RCLCPP_INFO_STREAM_THROTTLE(
-    //   node_->get_logger(), *node_->get_clock(), 500, "a:" << dt*K_vec_.at(idx).dot(-e));
-    u += dt * (K_vec_.at(idx).dot(-e));
-    // RCLCPP_INFO_THROTTLE(
-    //   node_->get_logger(), *node_->get_clock(), 500, "u: %f", u);
+    u += period.seconds() * (K_vec_.at(idx).dot(-e));
     // set system input as desired velocity + integrated LQR control output
     tmp_command.at(map_cmd_to_joints_.at(0)) = desired.velocities.at(map_cmd_to_joints_.at(0)) + u;
   }

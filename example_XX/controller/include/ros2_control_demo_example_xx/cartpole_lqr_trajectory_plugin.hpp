@@ -72,7 +72,7 @@ protected:
     Eigen::Matrix<double, NUM_STATES, NUM_STATES> & Phi,
     Eigen::Matrix<double, NUM_STATES, 1> & Gamma);
   void calcLQR_steady(
-    Eigen::Vector<double, NUM_STATES> q, Eigen::Vector<double, 1> u,
+    Eigen::Vector<double, NUM_STATES> q, Eigen::Vector<double, 1> u, double dt,
     Eigen::Matrix<double, NUM_STATES, NUM_STATES> Q, Eigen::Matrix<double, 1, 1> R,
     Eigen::Matrix<double, 1, NUM_STATES> N, Eigen::Matrix<double, 1, NUM_STATES> & Ks,
     Eigen::Matrix<double, NUM_STATES, NUM_STATES> & Ps);
@@ -90,7 +90,9 @@ protected:
   Params params_;
   // TODO(christophfroehlich): do we need the controller update rate here, or the trajectory
   // sampling?
-  double dt = 0.01;
+  double dt_ = 0.01;
+  Eigen::Matrix<double, NUM_STATES, NUM_STATES> Q_;
+  Eigen::Matrix<double, 1, 1> R_;
 };
 
 }  // namespace ros2_control_demo_example_xx
