@@ -85,7 +85,7 @@ bool CartpoleLqrTrajectoryPlugin::configure()
 bool CartpoleLqrTrajectoryPlugin::activate()
 {
   params_ = param_listener_->get_params();
-  updateGains();
+  parseGains();
   return true;
 }
 
@@ -112,6 +112,10 @@ bool CartpoleLqrTrajectoryPlugin::computeControlLawNonRT_impl(
   // std::cout << "Ks: " << Ks << std::endl;
   // std::cout << "Ps: " << Ps << std::endl;
 
+  // TODO(christophfroehlich) use a buffer to switch from RT thread to new gain
+  K_vec_.clear();
+  time_vec_.clear();
+
   if (trajectory->points.size() == 1)
   {
     // use steady-state gain
@@ -126,9 +130,6 @@ bool CartpoleLqrTrajectoryPlugin::computeControlLawNonRT_impl(
     Eigen::Matrix<double, NUM_STATES, NUM_STATES> C;
     C.setIdentity();
     Eigen::Matrix<double, NUM_STATES, NUM_STATES> P(Ps), P_new;
-    // TODO(christophfroehlich) use a buffer to switch from RT thread to new gain
-    K_vec_.clear();
-    time_vec_.clear();
     Eigen::Vector<double, NUM_STATES> x_p1;
     Eigen::Vector<double, NUM_STATES> x;
     Eigen::Vector<double, 1> u{0};
@@ -175,6 +176,31 @@ bool CartpoleLqrTrajectoryPlugin::computeControlLawNonRT_impl(
   return true;
 }
 
+bool CartpoleLqrTrajectoryPlugin::computeControlLawRT_impl(
+  const std::shared_ptr<trajectory_msgs::msg::JointTrajectory> & trajectory)
+{
+  // parameters
+  auto N = Eigen::Matrix<double, 1, NUM_STATES>::Zero();
+
+  Eigen::Matrix<double, 1, NUM_STATES> Ks;
+  Eigen::Matrix<double, NUM_STATES, NUM_STATES> Ps;
+  auto x_R = get_state_from_point(trajectory->points.back());
+  Eigen::Vector<double, 1> u_R{0};
+  calcLQR_steady(x_R, u_R, 0.1, Q_, R_, N, Ks, Ps);
+  // std::cout << "Ks: " << Ks << std::endl;
+  // std::cout << "Ps: " << Ps << std::endl;
+
+  // TODO(christophfroehlich) use a buffer to switch from RT thread to new gain
+  K_vec_.clear();
+  time_vec_.clear();
+
+  // use steady-state gain
+  K_vec_.push_back(Ks);
+  time_vec_.push_back(rclcpp::Duration::from_seconds(0.0));
+
+  return true;
+}
+
 void CartpoleLqrTrajectoryPlugin::calcLQR_steady(
   Eigen::Vector<double, NUM_STATES> x, Eigen::Vector<double, 1> u, double dt,
   Eigen::Matrix<double, NUM_STATES, NUM_STATES> Q, Eigen::Matrix<double, 1, 1> R,
@@ -214,13 +240,13 @@ bool CartpoleLqrTrajectoryPlugin::updateGainsRT()
   if (param_listener_->is_old(params_))
   {
     params_ = param_listener_->get_params();
-    updateGains();
+    parseGains();
   }
 
   return true;
 }
 
-void CartpoleLqrTrajectoryPlugin::updateGains()
+void CartpoleLqrTrajectoryPlugin::parseGains()
 {
   Eigen::Vector<double, NUM_STATES> Q_diag{params_.gains.Q.data()};
   Q_ = Eigen::Matrix<double, NUM_STATES, NUM_STATES>{Q_diag.asDiagonal()};

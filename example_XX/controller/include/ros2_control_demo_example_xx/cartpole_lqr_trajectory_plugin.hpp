@@ -38,15 +38,13 @@ public:
 
   bool activate() override;
 
+  // computes the control law for a given trajectory, for non-RT thread
   bool computeControlLawNonRT_impl(
-    const std::shared_ptr<trajectory_msgs::msg::JointTrajectory> & /*trajectory*/) override;
+    const std::shared_ptr<trajectory_msgs::msg::JointTrajectory> & trajectory) override;
 
+  // fast version of computeControlLawNonRT_impl for a single point only, for RT thread
   bool computeControlLawRT_impl(
-    const std::shared_ptr<trajectory_msgs::msg::JointTrajectory> & /*trajectory*/) override
-  {
-    // nothing to do
-    return true;
-  }
+    const std::shared_ptr<trajectory_msgs::msg::JointTrajectory> & trajectory) override;
 
   bool updateGainsRT() override;
 
@@ -64,7 +62,7 @@ protected:
   /**
    * @brief parse gains from parameter struct
    */
-  void updateGains();
+  void parseGains();
 
 #define NUM_STATES 4
   void get_linear_system_matrices(
