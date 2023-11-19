@@ -28,7 +28,7 @@ trajectory_controllers:
 
     gains:
       R: 0.1
-      Q: [1.0, 1.0, 1.0, 1.0]
+      Q: [5.0, 5.0, 0.1, 1.0]
       cart_to_pendulum:
         angle_wraparound: true
 
