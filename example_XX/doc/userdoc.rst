@@ -1,4 +1,4 @@
-:github_url: https://github.com/ros-controls/ros2_control_demos/blob/{REPOS_FILE_BRANCH}/example_9/doc/userdoc.rst
+:github_url: https://github.com/ros-controls/ros2_control_demos/blob/{REPOS_FILE_BRANCH}/example_XX/doc/userdoc.rst
 
 .. _ros2_control_demos_example_xx_userdoc:
 
@@ -17,7 +17,7 @@ With *example_xx*, we demonstrate the a robot with passive joints.
 
     .. code::
 
-      docker run -it --rm --name ros2_control_demos --net host ros2_control_demos ros2 launch ros2_control_demo_example_9 rrbot_gazebo_classic.launch.py gui:=false
+      docker run -it --rm --name ros2_control_demos --net host ros2_control_demos ros2 launch ros2_control_demo_example_xx cart_pole.launch.py gui:=false
 
     first. Then on your local machine you can run the Gazebo Classic client with
 
@@ -29,7 +29,7 @@ With *example_xx*, we demonstrate the a robot with passive joints.
 
     .. code-block:: shell
 
-      rviz2 -d src/ros2_control_demos/example_9/description/rviz/rrbot.rviz
+      rviz2 -d src/ros2_control_demos/ros2_control_demo_description/cart_pole/rviz/cart_pole.rviz
 
 
   For details on the ``gazebo_ros2_control`` plugin, see :ref:`gazebo_ros2_control`.
@@ -37,13 +37,12 @@ With *example_xx*, we demonstrate the a robot with passive joints.
 Tutorial steps
 --------------------------
 
-The following example shows a cart with a pendulum arm. This uses the effort command interface for the cart's
-degree of freedom on the rail, and the physics of the passive joint of the pendulum is solved correctly.
+The following example shows a cart with a pendulum arm.
 
 .. code-block:: shell
 
-  ros2 launch gazebo_ros2_control_demos pendulum_example_effort.launch.py
-  ros2 run gazebo_ros2_control_demos example_effort
+  ros2 launch ros2_control_demo_example_xx cart_pole.launch.py
+  ros2 run ros2_control_demo_example_xx trajectory_action_client.py
 
 
 Files used for this demos
@@ -51,24 +50,23 @@ Files used for this demos
 
 - Launch files:
 
-  + Hardware: `rrbot.launch.py <https://github.com/ros-controls/ros2_control_demos/tree/{REPOS_FILE_BRANCH}/example_9/bringup/launch/rrbot.launch.py>`__
-  + Gazebo Classic: `rrbot_gazebo_classic.launch.py <https://github.com/ros-controls/ros2_control_demos/tree/{REPOS_FILE_BRANCH}/example_9/bringup/launch/rrbot_gazebo_classic.launch.py>`__
+  + View robot: `view_robot.launch.py <https://github.com/ros-controls/ros2_control_demos/tree/{REPOS_FILE_BRANCH}/ros2_control_demo_description/cart_pole/launch/view_robot.launch.py>`__
+  + Gazebo Classic: `cart_pole.launch.py <https://github.com/ros-controls/ros2_control_demos/tree/{REPOS_FILE_BRANCH}/example_XX/bringup/launch/cart_pole.launch.py>`__
 
-- Controllers yaml: `rrbot_controllers.yaml <https://github.com/ros-controls/ros2_control_demos/tree/{REPOS_FILE_BRANCH}/example_9/bringup/config/rrbot_controllers.yaml>`__
-- URDF file: `rrbot.urdf.xacro <https://github.com/ros-controls/ros2_control_demos/tree/{REPOS_FILE_BRANCH}/example_9/description/urdf/rrbot.urdf.xacro>`__
+- Controllers yaml: `cart_pole_controllers.yaml <https://github.com/ros-controls/ros2_control_demos/tree/{REPOS_FILE_BRANCH}/example_XX/bringup/config/cart_pole_controllers.yaml>`__
+- URDF file:
 
-  + Description: `rrbot_description.urdf.xacro <https://github.com/ros-controls/ros2_control_demos/tree/{REPOS_FILE_BRANCH}/ros2_control_demo_description/rrbot/urdf/rrbot_description.urdf.xacro>`__
-  + ``ros2_control`` tag: `rrbot.ros2_control.xacro <https://github.com/ros-controls/ros2_control_demos/tree/{REPOS_FILE_BRANCH}/example_9/description/ros2_control/rrbot.ros2_control.xacro>`__
+  + Main File: `cart_pole.urdf.xacro <https://github.com/ros-controls/ros2_control_demos/tree/{REPOS_FILE_BRANCH}/example_XX/description/urdf/cart_pole.urdf.xacro>`__
+  + Description: `cart_pole_description.urdf.xacro <https://github.com/ros-controls/ros2_control_demos/tree/{REPOS_FILE_BRANCH}/ros2_control_demo_description/cart_pole/urdf/cart_pole_description.urdf.xacro>`__
+  + ``ros2_control`` tag: `cart_pole.ros2_control.xacro <https://github.com/ros-controls/ros2_control_demos/tree/{REPOS_FILE_BRANCH}/example_XX/description/ros2_control/cart_pole.ros2_control.xacro>`__
+  + ``gazebo`` tag: `cart_pole.gazebo.xacro <https://github.com/ros-controls/ros2_control_demos/tree/{REPOS_FILE_BRANCH}/example_XX/description/gazebo/cart_pole.gazebo.xacro>`__
 
-- RViz configuration: `rrbot.rviz <https://github.com/ros-controls/ros2_control_demos/tree/{REPOS_FILE_BRANCH}/ros2_control_demo_description/rrbot/rviz/rrbot.rviz>`__
-- Test nodes goals configuration:
-
-  + `rrbot_forward_position_publisher <https://github.com/ros-controls/ros2_control_demos/tree/{REPOS_FILE_BRANCH}/example_9/bringup/config/rrbot_forward_position_publisher.yaml>`__
-
-- Hardware interface plugin: `rrbot.cpp <https://github.com/ros-controls/ros2_control_demos/tree/{REPOS_FILE_BRANCH}/example_9/hardware/rrbot.cpp>`__
+- RViz configuration: `cart_pole.rviz <https://github.com/ros-controls/ros2_control_demos/tree/{REPOS_FILE_BRANCH}/ros2_control_demo_description/cart_pole/rviz/cart_pole.rviz>`__
+- Action client: `trajectory_action_client.py  <https://github.com/ros-controls/ros2_control_demos/tree/{REPOS_FILE_BRANCH}/example_XX/scripts/trajectory_action_client.py >`__
 
 
 Controllers from this demo
 --------------------------
-- ``Joint State Broadcaster`` (`ros2_controllers repository <https://github.com/ros-controls/ros2_controllers/tree/{REPOS_FILE_BRANCH}/joint_state_broadcaster>`__): `doc <https://control.ros.org/{REPOS_FILE_BRANCH}/doc/ros2_controllers/joint_state_broadcaster/doc/userdoc.html>`__
-- ``Forward Command Controller`` (`ros2_controllers repository <https://github.com/ros-controls/ros2_controllers/tree/{REPOS_FILE_BRANCH}/forward_command_controller>`__): `doc <https://control.ros.org/{REPOS_FILE_BRANCH}/doc/ros2_controllers/forward_command_controller/doc/userdoc.html>`__
+* ``Joint State Broadcaster`` (`ros2_controllers repository <https://github.com/ros-controls/ros2_controllers/tree/{REPOS_FILE_BRANCH}/joint_state_broadcaster>`__): `doc <https://control.ros.org/{REPOS_FILE_BRANCH}/doc/ros2_controllers/joint_state_broadcaster/doc/userdoc.html>`__
+
+* ``Joint Trajectory Controller`` (`ros2_controllers repository <https://github.com/ros-controls/ros2_controllers/tree/{REPOS_FILE_BRANCH}/joint_trajectory_controller>`__): `doc <https://control.ros.org/{REPOS_FILE_BRANCH}/doc/ros2_controllers/joint_trajectory_controller/doc/userdoc.html>`__
