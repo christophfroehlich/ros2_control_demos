@@ -64,7 +64,7 @@ bool CartpoleLqrTrajectoryPlugin::initialize(
     return false;
   }
 
-  trajectory_lqr_ptr_ = std::make_shared<TrajectoryLQR>();
+  trajectory_active_lqr_ptr_ = std::make_shared<TrajectoryLQR>();
 
   return true;
 }
@@ -133,14 +133,13 @@ bool CartpoleLqrTrajectoryPlugin::computeControlLawNonRT_impl(
   // std::cout << "Ks: " << Ks << std::endl;
   // std::cout << "Ps: " << Ps << std::endl;
 
-  // TODO(christophfroehlich) use a buffer to switch from RT thread to new gain
-  trajectory_lqr_ptr_->reset();
+  auto new_trajectory_gains = std::make_shared<TrajectoryLQR>();
 
   if (trajectory->points.size() == 1)
   {
     // use steady-state gain
-    trajectory_lqr_ptr_->K_vec_.push_back(Ks);
-    trajectory_lqr_ptr_->time_vec_.push_back(rclcpp::Duration::from_seconds(0.0));
+    new_trajectory_gains->K_vec_.push_back(Ks);
+    new_trajectory_gains->time_vec_.push_back(rclcpp::Duration::from_seconds(0.0));
   }
   else
   {
@@ -182,19 +181,20 @@ bool CartpoleLqrTrajectoryPlugin::computeControlLawNonRT_impl(
       P_new = (Q_ + Phi.transpose() * P * Phi) + (N + Gamma.transpose() * P * Phi).transpose() * K;
       P = 0.5 * (P_new + P_new.transpose());
 
-      trajectory_lqr_ptr_->K_vec_.push_back(K);
-      trajectory_lqr_ptr_->time_vec_.push_back(point.time_from_start);
+      new_trajectory_gains->K_vec_.push_back(K);
+      new_trajectory_gains->time_vec_.push_back(point.time_from_start);
 
       // BEGIN: This part here is for exemplary purposes - Please do not copy to your production
       // code wait to check if RT buffer works well
       std::this_thread::sleep_for(std::chrono::milliseconds(10));
       // END: This part here is for exemplary purposes - Please do not copy to your production code
     }
-    // would be more efficient using reverse iterator in get_feedback_gain
-    std::reverse(trajectory_lqr_ptr_->K_vec_.begin(), trajectory_lqr_ptr_->K_vec_.end());
-    std::reverse(trajectory_lqr_ptr_->time_vec_.begin(), trajectory_lqr_ptr_->time_vec_.end());
+    // TODO(anyone) would be more efficient using reverse iterator in get_feedback_gain
+    std::reverse(new_trajectory_gains->K_vec_.begin(), new_trajectory_gains->K_vec_.end());
+    std::reverse(new_trajectory_gains->time_vec_.begin(), new_trajectory_gains->time_vec_.end());
   }
 
+  trajectory_next_lqr_ptr_.writeFromNonRT(new_trajectory_gains);
   auto end_time = this->node_->now();
   auto duration = end_time - start_time;
   RCLCPP_INFO(
@@ -222,13 +222,13 @@ bool CartpoleLqrTrajectoryPlugin::computeControlLawRT_impl(
   // std::cout << "Ks: " << Ks << std::endl;
   // std::cout << "Ps: " << Ps << std::endl;
 
-  // TODO(christophfroehlich) use a buffer to switch from RT thread to new gain
-  trajectory_lqr_ptr_->reset();
+  auto new_trajectory_gains = std::make_shared<TrajectoryLQR>();
 
   // use steady-state gain
-  trajectory_lqr_ptr_->K_vec_.push_back(Ks);
-  trajectory_lqr_ptr_->time_vec_.push_back(rclcpp::Duration::from_seconds(0.0));
+  new_trajectory_gains->K_vec_.push_back(Ks);
+  new_trajectory_gains->time_vec_.push_back(rclcpp::Duration::from_seconds(0.0));
 
+  trajectory_next_lqr_ptr_.writeFromNonRT(new_trajectory_gains);
   return true;
 }
 
@@ -294,10 +294,10 @@ void CartpoleLqrTrajectoryPlugin::computeCommands(
   const trajectory_msgs::msg::JointTrajectoryPoint desired,
   const rclcpp::Duration & duration_since_start, const rclcpp::Duration & period)
 {
-  if (!trajectory_lqr_ptr_->is_empty())
+  if (!trajectory_active_lqr_ptr_->is_empty())
   {
     auto e = get_state_from_point(error);
-    auto K = trajectory_lqr_ptr_->get_feedback_gain(duration_since_start);
+    auto K = trajectory_active_lqr_ptr_->get_feedback_gain(duration_since_start);
     // integrate acceleration from state feedback to velocity. consider sign of e!
     u_ += period.seconds() * (K.dot(-e));
     // set system input as desired velocity + integrated LQR control output
@@ -307,8 +307,14 @@ void CartpoleLqrTrajectoryPlugin::computeCommands(
 
 void CartpoleLqrTrajectoryPlugin::reset()
 {
-  trajectory_lqr_ptr_->reset();
+  trajectory_active_lqr_ptr_->reset();
   u_ = 0;
+}
+
+void CartpoleLqrTrajectoryPlugin::start()
+{
+  // switch storage to new gains
+  trajectory_active_lqr_ptr_ = *trajectory_next_lqr_ptr_.readFromRT();
 }
 
 void CartpoleLqrTrajectoryPlugin::get_linear_system_matrices(

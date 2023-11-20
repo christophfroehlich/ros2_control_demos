@@ -76,7 +76,7 @@ public:
 
   void reset() override;
 
-  void start() override {}
+  void start() override;
 
 protected:
   /**
@@ -109,7 +109,8 @@ protected:
   Eigen::Matrix<double, NUM_STATES, NUM_STATES> Q_;
   Eigen::Matrix<double, 1, 1> R_;
 
-  std::shared_ptr<TrajectoryLQR> trajectory_lqr_ptr_;
+  std::shared_ptr<TrajectoryLQR> trajectory_active_lqr_ptr_;
+  realtime_tools::RealtimeBuffer<std::shared_ptr<TrajectoryLQR>> trajectory_next_lqr_ptr_;
 };
 
 }  // namespace ros2_control_demo_example_xx
