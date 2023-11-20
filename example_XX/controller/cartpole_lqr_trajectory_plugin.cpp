@@ -19,6 +19,23 @@
 namespace ros2_control_demo_example_xx
 {
 
+Eigen::Matrix<double, 1, NUM_STATES> TrajectoryLQR::get_feedback_gain(
+  const rclcpp::Duration & duration_since_start)
+{
+  // TODO(christophfroehlich) interpolate K from time
+  auto it = std::upper_bound(time_vec_.begin(), time_vec_.end(), duration_since_start);
+  int idx;
+  if (it == time_vec_.end())
+  {
+    idx = time_vec_.size() - 1;
+  }
+  else
+  {
+    idx = std::distance(time_vec_.begin(), it);
+  }
+  return K_vec_.at(idx);
+}
+
 bool CartpoleLqrTrajectoryPlugin::initialize(
   rclcpp_lifecycle::LifecycleNode::SharedPtr node, std::vector<size_t> map_cmd_to_joints)
 {
@@ -46,6 +63,8 @@ bool CartpoleLqrTrajectoryPlugin::initialize(
     fprintf(stderr, "Exception thrown during init stage with message: %s \n", e.what());
     return false;
   }
+
+  trajectory_lqr_ptr_ = std::make_shared<TrajectoryLQR>();
 
   return true;
 }
@@ -101,6 +120,8 @@ Eigen::Vector<double, NUM_STATES> get_state_from_point(
 bool CartpoleLqrTrajectoryPlugin::computeControlLawNonRT_impl(
   const std::shared_ptr<trajectory_msgs::msg::JointTrajectory> & trajectory)
 {
+  auto start_time = this->node_->now();
+
   // parameters
   auto N = Eigen::Matrix<double, 1, NUM_STATES>::Zero();
 
@@ -113,14 +134,13 @@ bool CartpoleLqrTrajectoryPlugin::computeControlLawNonRT_impl(
   // std::cout << "Ps: " << Ps << std::endl;
 
   // TODO(christophfroehlich) use a buffer to switch from RT thread to new gain
-  K_vec_.clear();
-  time_vec_.clear();
+  trajectory_lqr_ptr_->reset();
 
   if (trajectory->points.size() == 1)
   {
     // use steady-state gain
-    K_vec_.push_back(Ks);
-    time_vec_.push_back(rclcpp::Duration::from_seconds(0.0));
+    trajectory_lqr_ptr_->K_vec_.push_back(Ks);
+    trajectory_lqr_ptr_->time_vec_.push_back(rclcpp::Duration::from_seconds(0.0));
   }
   else
   {
@@ -146,7 +166,7 @@ bool CartpoleLqrTrajectoryPlugin::computeControlLawNonRT_impl(
       // we don't have acceleration in trajectory, so we have to calculate it
       if (i == trajectory->points.size())
       {
-        dt_traj = 0.1;
+        dt_traj = dt_;
         u[0] = 0.0;
         x_p1 = x;
       }
@@ -162,13 +182,25 @@ bool CartpoleLqrTrajectoryPlugin::computeControlLawNonRT_impl(
       P_new = (Q_ + Phi.transpose() * P * Phi) + (N + Gamma.transpose() * P * Phi).transpose() * K;
       P = 0.5 * (P_new + P_new.transpose());
 
-      K_vec_.push_back(K);
-      time_vec_.push_back(point.time_from_start);
+      trajectory_lqr_ptr_->K_vec_.push_back(K);
+      trajectory_lqr_ptr_->time_vec_.push_back(point.time_from_start);
+
+      // BEGIN: This part here is for exemplary purposes - Please do not copy to your production
+      // code wait to check if RT buffer works well
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      // END: This part here is for exemplary purposes - Please do not copy to your production code
     }
-    // could be more efficient using reverse iterator in computeCommand
-    std::reverse(K_vec_.begin(), K_vec_.end());
+    // would be more efficient using reverse iterator in get_feedback_gain
+    std::reverse(trajectory_lqr_ptr_->K_vec_.begin(), trajectory_lqr_ptr_->K_vec_.end());
+    std::reverse(trajectory_lqr_ptr_->time_vec_.begin(), trajectory_lqr_ptr_->time_vec_.end());
   }
 
+  auto end_time = this->node_->now();
+  auto duration = end_time - start_time;
+  RCLCPP_INFO(
+    node_->get_logger(),
+    "[CartpoleLqrTrajectoryPlugin] computed control law for %lu points in %es.",
+    trajectory->points.size(), duration.seconds());
   // for (const auto & mat : K_vec_) {
   //   std::cout << "K: " << std::endl << mat << std::endl;
   // }
@@ -191,12 +223,11 @@ bool CartpoleLqrTrajectoryPlugin::computeControlLawRT_impl(
   // std::cout << "Ps: " << Ps << std::endl;
 
   // TODO(christophfroehlich) use a buffer to switch from RT thread to new gain
-  K_vec_.clear();
-  time_vec_.clear();
+  trajectory_lqr_ptr_->reset();
 
   // use steady-state gain
-  K_vec_.push_back(Ks);
-  time_vec_.push_back(rclcpp::Duration::from_seconds(0.0));
+  trajectory_lqr_ptr_->K_vec_.push_back(Ks);
+  trajectory_lqr_ptr_->time_vec_.push_back(rclcpp::Duration::from_seconds(0.0));
 
   return true;
 }
@@ -263,31 +294,21 @@ void CartpoleLqrTrajectoryPlugin::computeCommands(
   const trajectory_msgs::msg::JointTrajectoryPoint desired,
   const rclcpp::Duration & duration_since_start, const rclcpp::Duration & period)
 {
-  if (K_vec_.size() > 0)
+  if (!trajectory_lqr_ptr_->is_empty())
   {
     auto e = get_state_from_point(error);
-    // TODO(christophfroehlich) interpolate K from time
-    auto it = std::upper_bound(time_vec_.begin(), time_vec_.end(), duration_since_start);
-    int idx;
-    if (it == time_vec_.end())
-    {
-      idx = time_vec_.size() - 1;
-    }
-    else
-    {
-      idx = std::distance(time_vec_.begin(), it);
-    }
+    auto K = trajectory_lqr_ptr_->get_feedback_gain(duration_since_start);
     // integrate acceleration from state feedback to velocity. consider sign of e!
-    u += period.seconds() * (K_vec_.at(idx).dot(-e));
+    u_ += period.seconds() * (K.dot(-e));
     // set system input as desired velocity + integrated LQR control output
-    tmp_command.at(map_cmd_to_joints_.at(0)) = desired.velocities.at(map_cmd_to_joints_.at(0)) + u;
+    tmp_command.at(map_cmd_to_joints_.at(0)) = desired.velocities.at(map_cmd_to_joints_.at(0)) + u_;
   }
 }
 
 void CartpoleLqrTrajectoryPlugin::reset()
 {
-  K_vec_.clear();
-  u = 0;
+  trajectory_lqr_ptr_->reset();
+  u_ = 0;
 }
 
 void CartpoleLqrTrajectoryPlugin::get_linear_system_matrices(
