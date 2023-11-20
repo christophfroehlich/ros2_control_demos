@@ -103,12 +103,12 @@ protected:
   // Parameters from ROS for ros2_control_demo_example_xx
   std::shared_ptr<ParamListener> param_listener_;
   Params params_;
-  // TODO(christophfroehlich): do we need the controller update rate here, or the trajectory
-  // sampling?
+  // controller update rate
   double dt_ = 0.01;
   Eigen::Matrix<double, NUM_STATES, NUM_STATES> Q_;
   Eigen::Matrix<double, 1, 1> R_;
 
+  // storage for LQR gains
   std::shared_ptr<TrajectoryLQR> trajectory_active_lqr_ptr_;
   realtime_tools::RealtimeBuffer<std::shared_ptr<TrajectoryLQR>> trajectory_next_lqr_ptr_;
 };

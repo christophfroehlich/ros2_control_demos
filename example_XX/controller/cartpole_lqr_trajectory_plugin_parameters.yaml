@@ -8,11 +8,6 @@ ros2_control_demo_example_xx:
       size_gt<>: [0],
     }
   }
-  dt: {
-    type: double,
-      default_value: 0.01,
-    description: "control loop update interval"
-  }
   system:
     lS: {
       type: double,
