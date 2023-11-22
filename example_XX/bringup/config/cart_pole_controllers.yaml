@@ -10,7 +10,6 @@ controller_manager:
 
 trajectory_controllers:
   ros__parameters:
-    update_rate: 100 # Hz
 
     joints:
       - slider_to_cart

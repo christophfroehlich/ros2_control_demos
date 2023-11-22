@@ -283,8 +283,7 @@ void CartpoleLqrTrajectoryPlugin::parseGains()
   Q_ = Eigen::Matrix<double, NUM_STATES, NUM_STATES>{Q_diag.asDiagonal()};
   R_ = Eigen::Matrix<double, 1, 1>{params_.gains.R};
   // this is part of controller_interface definition, and not defined in GPL params_
-  // TODO(christophfroehlich): change API once
-  // https://github.com/ros-controls/ros2_control/pull/1141 is merged
+  // if not set explicitly, it will be the cm_update rate
   dt_ = 1. / node_->get_parameter("update_rate").as_int();
 
   RCLCPP_INFO_STREAM(node_->get_logger(), "[CartpoleLqrTrajectoryPlugin] Q: " << std::endl << Q_);
