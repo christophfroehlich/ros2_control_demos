@@ -130,8 +130,6 @@ bool CartpoleLqrTrajectoryPlugin::computeControlLawNonRT_impl(
   auto x_R = get_state_from_point(trajectory->points.back());
   Eigen::Vector<double, 1> u_R{0};
   calcLQR_steady(x_R, u_R, 0.1, Q_, R_, N, Ks, Ps);
-  // std::cout << "Ks: " << Ks << std::endl;
-  // std::cout << "Ps: " << Ps << std::endl;
 
   auto new_trajectory_gains = std::make_shared<TrajectoryLQR>();
 
@@ -152,8 +150,6 @@ bool CartpoleLqrTrajectoryPlugin::computeControlLawNonRT_impl(
     Eigen::Vector<double, NUM_STATES> x_p1;
     Eigen::Vector<double, NUM_STATES> x;
     Eigen::Vector<double, 1> u{0};
-    auto get_time = [](const trajectory_msgs::msg::JointTrajectoryPoint & point)
-    { return point.time_from_start.sec + point.time_from_start.nanosec * 1e-9; };
     double dt_traj;
 
     // iterate Riccati equation, backwards in time
@@ -165,13 +161,14 @@ bool CartpoleLqrTrajectoryPlugin::computeControlLawNonRT_impl(
       // we don't have acceleration in trajectory, so we have to calculate it
       if (i == trajectory->points.size())
       {
-        dt_traj = dt_;
+        dt_traj = dt_traj_;
         u[0] = 0.0;
         x_p1 = x;
       }
       else
       {
-        dt_traj = get_time(trajectory->points.at(i)) - get_time(point);
+        dt_traj =
+          get_time(trajectory->points.at(i).time_from_start) - get_time(point.time_from_start);
         x_p1 = get_state_from_point(trajectory->points.at(i));
         u[0] = (x_p1(3) - x(3)) / dt_traj;
       }
@@ -195,15 +192,15 @@ bool CartpoleLqrTrajectoryPlugin::computeControlLawNonRT_impl(
   }
 
   trajectory_next_lqr_ptr_.writeFromNonRT(new_trajectory_gains);
+
   auto end_time = this->node_->now();
   auto duration = end_time - start_time;
   RCLCPP_INFO(
     node_->get_logger(),
     "[CartpoleLqrTrajectoryPlugin] computed control law for %lu points in %es.",
     trajectory->points.size(), duration.seconds());
-  // for (const auto & mat : K_vec_) {
-  //   std::cout << "K: " << std::endl << mat << std::endl;
-  // }
+
+  new_trajectory_gains->print();
 
   return true;
 }
@@ -218,17 +215,17 @@ bool CartpoleLqrTrajectoryPlugin::computeControlLawRT_impl(
   Eigen::Matrix<double, NUM_STATES, NUM_STATES> Ps;
   auto x_R = get_state_from_point(trajectory->points.back());
   Eigen::Vector<double, 1> u_R{0};
-  calcLQR_steady(x_R, u_R, 0.1, Q_, R_, N, Ks, Ps);
-  // std::cout << "Ks: " << Ks << std::endl;
-  // std::cout << "Ps: " << Ps << std::endl;
+  calcLQR_steady(x_R, u_R, dt_traj_, Q_, R_, N, Ks, Ps);
 
   auto new_trajectory_gains = std::make_shared<TrajectoryLQR>();
 
   // use steady-state gain
   new_trajectory_gains->K_vec_.push_back(Ks);
   new_trajectory_gains->time_vec_.push_back(rclcpp::Duration::from_seconds(0.0));
-
   trajectory_next_lqr_ptr_.writeFromNonRT(new_trajectory_gains);
+
+  new_trajectory_gains->print();
+
   return true;
 }
 
@@ -264,6 +261,9 @@ void CartpoleLqrTrajectoryPlugin::calcLQR_steady(
   }
   Ks = K;
   Ps = P;
+
+  // std::cout << "Ks: " << Ks << std::endl;
+  // std::cout << "Ps: " << Ps << std::endl;
 }
 
 bool CartpoleLqrTrajectoryPlugin::updateGainsRT()

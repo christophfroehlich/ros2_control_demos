@@ -28,22 +28,48 @@
 namespace ros2_control_demo_example_xx
 {
 
+double get_time(const builtin_interfaces::msg::Duration & time_from_start)
+{
+  return time_from_start.sec + time_from_start.nanosec * 1e-9;
+};
+
 class TrajectoryLQR
 {
 public:
   std::vector<Eigen::Matrix<double, 1, NUM_STATES>> K_vec_;
   std::vector<builtin_interfaces::msg::Duration> time_vec_;
 
+  /**
+   * @brief sample the feedback gain at the given time
+   */
   Eigen::Matrix<double, 1, NUM_STATES> get_feedback_gain(
     const rclcpp::Duration & duration_since_start);
 
+  /**
+   * @brief resets internal storage
+   */
   void reset()
   {
     K_vec_.clear();
     time_vec_.clear();
   };
 
+  /**
+   * @brief returns true if the trajectory is empty
+   */
   bool is_empty() { return K_vec_.empty(); }
+
+  /**
+   * @brief print the gains on std::cout
+   */
+  void print()
+  {
+    for (size_t i = 0; i < K_vec_.size(); ++i)
+    {
+      std::cout << "at t: " << get_time(time_vec_.at(i)) << "s K: " << std::endl
+                << K_vec_.at(i) << std::endl;
+    }
+  }
 };
 
 class CartpoleLqrTrajectoryPlugin
@@ -103,8 +129,11 @@ protected:
   // Parameters from ROS for ros2_control_demo_example_xx
   std::shared_ptr<ParamListener> param_listener_;
   Params params_;
-  // controller update rate
+  // sampling time of the controller
   double dt_ = 0.01;
+  // feedback gains were tuned with trajectory sampling of 0.1s
+  // TODO(christophfroehlich): change this to make it independent of the trajectory sampling
+  double dt_traj_ = 0.1;
   Eigen::Matrix<double, NUM_STATES, NUM_STATES> Q_;
   Eigen::Matrix<double, 1, 1> R_;
 
