@@ -131,10 +131,9 @@ protected:
   Params params_;
   // sampling time of the controller
   double dt_ = 0.01;
-  // feedback gains were tuned with trajectory sampling of 0.1s
-  // TODO(christophfroehlich): change this to make it independent of the trajectory sampling
-  double dt_traj_ = 0.1;
+  // LQR cost function parameter for states
   Eigen::Matrix<double, NUM_STATES, NUM_STATES> Q_;
+  // LQR cost function parameter for input
   Eigen::Matrix<double, 1, 1> R_;
 
   // storage for LQR gains

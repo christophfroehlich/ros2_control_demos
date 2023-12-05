@@ -129,7 +129,7 @@ bool CartpoleLqrTrajectoryPlugin::computeControlLawNonRT_impl(
   Eigen::Matrix<double, NUM_STATES, NUM_STATES> Ps;
   auto x_R = get_state_from_point(trajectory->points.back());
   Eigen::Vector<double, 1> u_R{0};
-  calcLQR_steady(x_R, u_R, 0.1, Q_, R_, N, Ks, Ps);
+  calcLQR_steady(x_R, u_R, dt_, Q_, R_, N, Ks, Ps);
 
   auto new_trajectory_gains = std::make_shared<TrajectoryLQR>();
 
@@ -137,7 +137,7 @@ bool CartpoleLqrTrajectoryPlugin::computeControlLawNonRT_impl(
   {
     // use steady-state gain
     new_trajectory_gains->K_vec_.push_back(Ks);
-    new_trajectory_gains->time_vec_.push_back(rclcpp::Duration::from_seconds(0.0));
+    new_trajectory_gains->time_vec_.push_back(rclcpp::Duration::from_seconds(dt_));
   }
   else
   {
@@ -145,50 +145,63 @@ bool CartpoleLqrTrajectoryPlugin::computeControlLawNonRT_impl(
     Eigen::Matrix<double, NUM_STATES, NUM_STATES> Phi;
     Eigen::Matrix<double, NUM_STATES, 1> Gamma;
     Eigen::Matrix<double, NUM_STATES, NUM_STATES> C;
-    C.setIdentity();
+    C.setIdentity();  // we can measure every state
     Eigen::Matrix<double, NUM_STATES, NUM_STATES> P(Ps), P_new;
     Eigen::Vector<double, NUM_STATES> x_p1;
     Eigen::Vector<double, NUM_STATES> x;
     Eigen::Vector<double, 1> u{0};
-    double dt_traj;
+
+    // reserve space for feedback gains for every point in trajectory
+    // this is a design choice to save memory of the gains, theoretically we should
+    // save the gains at the dt-grid.
+    new_trajectory_gains->K_vec_.resize(trajectory->points.size() - 1);
+    new_trajectory_gains->time_vec_.resize(trajectory->points.size() - 1);
+
+    double t_traj = get_time(trajectory->points.back().time_from_start);
+    auto idx_traj = trajectory->points.size();
 
     // iterate Riccati equation, backwards in time
-    for (size_t i = trajectory->points.size(); i > 0; i--)
+    while (t_traj > 0.0)
     {
-      const trajectory_msgs::msg::JointTrajectoryPoint point = trajectory->points.at(i - 1);
+      // TODO(christophfroehlich) interpolate from time or use trajectory class?
+      const trajectory_msgs::msg::JointTrajectoryPoint point = trajectory->points.at(idx_traj - 1);
       x = get_state_from_point(point);
       // system input acceleration, derivative of velocity
       // we don't have acceleration in trajectory, so we have to calculate it
-      if (i == trajectory->points.size())
+      if (idx_traj < trajectory->points.size())
       {
-        dt_traj = dt_traj_;
-        u[0] = 0.0;
-        x_p1 = x;
-      }
-      else
-      {
-        dt_traj =
-          get_time(trajectory->points.at(i).time_from_start) - get_time(point.time_from_start);
-        x_p1 = get_state_from_point(trajectory->points.at(i));
+        double dt_traj = get_time(trajectory->points.at(idx_traj).time_from_start) -
+                         get_time(point.time_from_start);
+        x_p1 = get_state_from_point(trajectory->points.at(idx_traj));
         u[0] = (x_p1(3) - x(3)) / dt_traj;
       }
-      get_linear_system_matrices(x, u, dt_traj, Phi, Gamma);
+      get_linear_system_matrices(x, u, dt_, Phi, Gamma);
 
       K = -(R_ + Gamma.transpose() * P * Gamma).inverse() * (N + Gamma.transpose() * P * Phi);
       P_new = (Q_ + Phi.transpose() * P * Phi) + (N + Gamma.transpose() * P * Phi).transpose() * K;
       P = 0.5 * (P_new + P_new.transpose());
 
-      new_trajectory_gains->K_vec_.push_back(K);
-      new_trajectory_gains->time_vec_.push_back(point.time_from_start);
-
       // BEGIN: This part here is for exemplary purposes - Please do not copy to your production
-      // code wait to check if RT buffer works well
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      // code
+      // DEBUG: wait to check if RT buffer works well
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
       // END: This part here is for exemplary purposes - Please do not copy to your production code
+
+      t_traj -= dt_;
+      if (t_traj < get_time(trajectory->points.at(idx_traj - 1).time_from_start))
+      {
+        idx_traj--;
+        if (idx_traj == 0lu)
+        {
+          // we reached the start of the trajectory
+          break;
+        }
+        // save feedback gain for this point
+        new_trajectory_gains->K_vec_.at(idx_traj - 1) = K;
+        new_trajectory_gains->time_vec_.at(idx_traj - 1) =
+          trajectory->points.at(idx_traj).time_from_start;
+      }
     }
-    // TODO(anyone) would be more efficient using reverse iterator in get_feedback_gain
-    std::reverse(new_trajectory_gains->K_vec_.begin(), new_trajectory_gains->K_vec_.end());
-    std::reverse(new_trajectory_gains->time_vec_.begin(), new_trajectory_gains->time_vec_.end());
   }
 
   trajectory_next_lqr_ptr_.writeFromNonRT(new_trajectory_gains);
@@ -215,13 +228,13 @@ bool CartpoleLqrTrajectoryPlugin::computeControlLawRT_impl(
   Eigen::Matrix<double, NUM_STATES, NUM_STATES> Ps;
   auto x_R = get_state_from_point(trajectory->points.back());
   Eigen::Vector<double, 1> u_R{0};
-  calcLQR_steady(x_R, u_R, dt_traj_, Q_, R_, N, Ks, Ps);
+  calcLQR_steady(x_R, u_R, dt_, Q_, R_, N, Ks, Ps);
 
   auto new_trajectory_gains = std::make_shared<TrajectoryLQR>();
 
   // use steady-state gain
   new_trajectory_gains->K_vec_.push_back(Ks);
-  new_trajectory_gains->time_vec_.push_back(rclcpp::Duration::from_seconds(0.0));
+  new_trajectory_gains->time_vec_.push_back(rclcpp::Duration::from_seconds(dt_));
   trajectory_next_lqr_ptr_.writeFromNonRT(new_trajectory_gains);
 
   new_trajectory_gains->print();
