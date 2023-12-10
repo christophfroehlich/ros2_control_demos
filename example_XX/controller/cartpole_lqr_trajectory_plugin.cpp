@@ -113,6 +113,14 @@ Eigen::Vector<double, NUM_STATES> get_state_from_point(
 {
   // TODO(anyone) create map to get the correct joint order
   // theta, theta_dot, x, x_dot
+  if (point.positions.size() != 2)
+  {
+    throw std::runtime_error("JointTrajectoryPoint.positions does not have the correct size.");
+  }
+  if (point.velocities.size() != 2)
+  {
+    throw std::runtime_error("JointTrajectoryPoint.velocities does not have the correct size.");
+  }
   return Eigen::Vector<double, NUM_STATES>{
     point.positions[1], point.velocities[1], point.positions[0], point.velocities[0]};
 }
