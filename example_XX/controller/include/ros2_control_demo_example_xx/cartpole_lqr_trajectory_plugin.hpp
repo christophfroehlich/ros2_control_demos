@@ -33,6 +33,12 @@ double get_time_from_duration(const builtin_interfaces::msg::Duration & time_fro
   return time_from_start.sec + time_from_start.nanosec * 1e-9;
 };
 
+// Make P symmetric
+auto make_symmetric(Eigen::Matrix<double, NUM_STATES, NUM_STATES> & P)
+{
+  return 0.5 * (P + P.transpose());
+}
+
 class TrajectoryLQR
 {
 public:
@@ -119,6 +125,15 @@ protected:
     Eigen::Matrix<double, NUM_STATES, NUM_STATES> Q, Eigen::Matrix<double, 1, 1> R,
     Eigen::Matrix<double, 1, NUM_STATES> N, Eigen::Matrix<double, 1, NUM_STATES> & Ks,
     Eigen::Matrix<double, NUM_STATES, NUM_STATES> & Ps);
+  void riccati_step(
+    Eigen::Matrix<double, 1, NUM_STATES> & K, Eigen::Matrix<double, NUM_STATES, NUM_STATES> & P_new,
+    const Eigen::Matrix<double, NUM_STATES, NUM_STATES> & P,
+    const Eigen::Matrix<double, NUM_STATES, NUM_STATES> & Phi,
+    const Eigen::Matrix<double, NUM_STATES, 1> & Gamma,
+    const Eigen::Matrix<double, NUM_STATES, NUM_STATES> & Q, const Eigen::Matrix<double, 1, 1> & R,
+    const Eigen::Matrix<double, 1, NUM_STATES> & N);
+
+  // integrator state for system input/LQR output
   double u_;
 
   // number of command joints

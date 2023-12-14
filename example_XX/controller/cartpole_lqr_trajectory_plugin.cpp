@@ -18,11 +18,8 @@
 
 namespace ros2_control_demo_example_xx
 {
-// Make P symmetric
-auto make_symmetric(Eigen::Matrix<double, NUM_STATES, NUM_STATES> & P)
-{
-  return 0.5 * (P + P.transpose());
-}
+
+/* ----- TrajectoryLQR ----- */
 
 Eigen::Matrix<double, 1, NUM_STATES> TrajectoryLQR::get_feedback_gain(
   const rclcpp::Duration & duration_since_start)
@@ -40,6 +37,8 @@ Eigen::Matrix<double, 1, NUM_STATES> TrajectoryLQR::get_feedback_gain(
   }
   return K_vec_.at(idx);
 }
+
+/* ----- CartpoleLqrTrajectoryPlugin ----- */
 
 bool CartpoleLqrTrajectoryPlugin::initialize(
   rclcpp_lifecycle::LifecycleNode::SharedPtr node, std::vector<size_t> map_cmd_to_joints)
@@ -189,10 +188,8 @@ bool CartpoleLqrTrajectoryPlugin::computeControlLawNonRT_impl(
         u[0] = (x_p1(3) - x(3)) / dt_traj;
       }
       get_linear_system_matrices(x, u, dt_, Phi, Gamma);
-
-      K = -(R_ + Gamma.transpose() * P * Gamma).inverse() * (N + Gamma.transpose() * P * Phi);
-      P_new = (Q_ + Phi.transpose() * P * Phi) + (N + Gamma.transpose() * P * Phi).transpose() * K;
-      P = 0.5 * (P_new + P_new.transpose());
+      riccati_step(K, P_new, P, Phi, Gamma, Q_, R_, N);
+      P = make_symmetric(P_new);
 
       // BEGIN: This part here is for exemplary purposes - Please do not copy to your production
       // code
@@ -271,14 +268,11 @@ void CartpoleLqrTrajectoryPlugin::calcLQR_steady(
   // solve steady-state Riccati equation iteratively
   Eigen::Matrix<double, NUM_STATES, NUM_STATES> P, P_new;
   Eigen::Matrix<double, 1, NUM_STATES> K;
-  P.setIdentity();
+  P = P.setIdentity() * 1e5;  // initial value of P
 
-  P = P * 1e5;  // initial value of P
-  int ct = 0;
-  for (ct = 1; ct < 1e4; ct++)
+  for (int ct = 0; ct < 1e4; ++ct)
   {
-    K = -(R + Gamma.transpose() * P * Gamma).inverse() * (N + Gamma.transpose() * P * Phi);
-    P_new = (Q + Phi.transpose() * P * Phi) + (N + Gamma.transpose() * P * Phi).transpose() * K;
+    riccati_step(K, P_new, P, Phi, Gamma, Q, R, N);
     if ((P_new - P).norm() < 1e-3)
     {  // abort criterium
       break;
@@ -344,6 +338,19 @@ void CartpoleLqrTrajectoryPlugin::start()
 {
   // switch storage to new gains
   trajectory_active_lqr_ptr_ = *trajectory_next_lqr_ptr_.readFromRT();
+}
+
+/* ----- local functions ----- */
+void CartpoleLqrTrajectoryPlugin::riccati_step(
+  Eigen::Matrix<double, 1, NUM_STATES> & K, Eigen::Matrix<double, NUM_STATES, NUM_STATES> & P_new,
+  const Eigen::Matrix<double, NUM_STATES, NUM_STATES> & P,
+  const Eigen::Matrix<double, NUM_STATES, NUM_STATES> & Phi,
+  const Eigen::Matrix<double, NUM_STATES, 1> & Gamma,
+  const Eigen::Matrix<double, NUM_STATES, NUM_STATES> & Q, const Eigen::Matrix<double, 1, 1> & R,
+  const Eigen::Matrix<double, 1, NUM_STATES> & N)
+{
+  K = -(R + Gamma.transpose() * P * Gamma).inverse() * (N + Gamma.transpose() * P * Phi);
+  P_new = (Q + Phi.transpose() * P * Phi) + (N + Gamma.transpose() * P * Phi).transpose() * K;
 }
 
 void CartpoleLqrTrajectoryPlugin::get_linear_system_matrices(
