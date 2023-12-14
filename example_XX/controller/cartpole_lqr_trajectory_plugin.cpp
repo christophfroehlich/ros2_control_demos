@@ -252,40 +252,6 @@ bool CartpoleLqrTrajectoryPlugin::computeControlLawRT_impl(
   return true;
 }
 
-void CartpoleLqrTrajectoryPlugin::calcLQR_steady(
-  Eigen::Vector<double, NUM_STATES> x, Eigen::Vector<double, 1> u, double dt,
-  Eigen::Matrix<double, NUM_STATES, NUM_STATES> Q, Eigen::Matrix<double, 1, 1> R,
-  Eigen::Matrix<double, 1, NUM_STATES> N, Eigen::Matrix<double, 1, NUM_STATES> & Ks,
-  Eigen::Matrix<double, NUM_STATES, NUM_STATES> & Ps)
-{
-  Eigen::Matrix<double, NUM_STATES, NUM_STATES> Phi;
-  Eigen::Matrix<double, NUM_STATES, 1> Gamma;
-  Eigen::Matrix<double, NUM_STATES, NUM_STATES> C;
-  C.setIdentity();
-
-  get_linear_system_matrices(x, u, dt, Phi, Gamma);
-
-  // solve steady-state Riccati equation iteratively
-  Eigen::Matrix<double, NUM_STATES, NUM_STATES> P, P_new;
-  Eigen::Matrix<double, 1, NUM_STATES> K;
-  P = P.setIdentity() * 1e5;  // initial value of P
-
-  for (int ct = 0; ct < 1e4; ++ct)
-  {
-    riccati_step(K, P_new, P, Phi, Gamma, Q, R, N);
-    if ((P_new - P).norm() < 1e-3)
-    {  // abort criterium
-      break;
-    }
-    P = make_symmetric(P_new);
-  }
-  Ks = K;
-  Ps = P;
-
-  // std::cout << "Ks: " << Ks << std::endl;
-  // std::cout << "Ps: " << Ps << std::endl;
-}
-
 bool CartpoleLqrTrajectoryPlugin::updateGainsRT()
 {
   if (param_listener_->is_old(params_))
@@ -340,7 +306,42 @@ void CartpoleLqrTrajectoryPlugin::start()
   trajectory_active_lqr_ptr_ = *trajectory_next_lqr_ptr_.readFromRT();
 }
 
-/* ----- local functions ----- */
+/* ----- private functions ----- */
+
+void CartpoleLqrTrajectoryPlugin::calcLQR_steady(
+  Eigen::Vector<double, NUM_STATES> x, Eigen::Vector<double, 1> u, double dt,
+  Eigen::Matrix<double, NUM_STATES, NUM_STATES> Q, Eigen::Matrix<double, 1, 1> R,
+  Eigen::Matrix<double, 1, NUM_STATES> N, Eigen::Matrix<double, 1, NUM_STATES> & Ks,
+  Eigen::Matrix<double, NUM_STATES, NUM_STATES> & Ps)
+{
+  Eigen::Matrix<double, NUM_STATES, NUM_STATES> Phi;
+  Eigen::Matrix<double, NUM_STATES, 1> Gamma;
+  Eigen::Matrix<double, NUM_STATES, NUM_STATES> C;
+  C.setIdentity();
+
+  get_linear_system_matrices(x, u, dt, Phi, Gamma);
+
+  // solve steady-state Riccati equation iteratively
+  Eigen::Matrix<double, NUM_STATES, NUM_STATES> P, P_new;
+  Eigen::Matrix<double, 1, NUM_STATES> K;
+  P = P.setIdentity() * 1e5;  // initial value of P
+
+  for (int ct = 0; ct < 1e4; ++ct)
+  {
+    riccati_step(K, P_new, P, Phi, Gamma, Q, R, N);
+    if ((P_new - P).norm() < 1e-3)
+    {  // abort criterium
+      break;
+    }
+    P = make_symmetric(P_new);
+  }
+  Ks = K;
+  Ps = P;
+
+  // std::cout << "Ks: " << Ks << std::endl;
+  // std::cout << "Ps: " << Ps << std::endl;
+}
+
 void CartpoleLqrTrajectoryPlugin::riccati_step(
   Eigen::Matrix<double, 1, NUM_STATES> & K, Eigen::Matrix<double, NUM_STATES, NUM_STATES> & P_new,
   const Eigen::Matrix<double, NUM_STATES, NUM_STATES> & P,
