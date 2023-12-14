@@ -26,7 +26,15 @@
 // shortcut
 namespace ros2_control_demo_example_xx
 {
+// shortcut
 #define NUM_STATES 4
+#define NUM_INPUTS 1
+typedef Eigen::Matrix<double, NUM_INPUTS, NUM_STATES> MatrixUX;
+typedef Eigen::Matrix<double, NUM_STATES, NUM_INPUTS> MatrixXU;
+typedef Eigen::Matrix<double, NUM_STATES, NUM_STATES> MatrixXX;
+typedef Eigen::Matrix<double, NUM_INPUTS, NUM_INPUTS> MatrixUU;
+typedef Eigen::Vector<double, NUM_STATES> VectorX;
+typedef Eigen::Vector<double, NUM_INPUTS> VectorU;
 
 double get_time_from_duration(const builtin_interfaces::msg::Duration & time_from_start)
 {
@@ -34,22 +42,18 @@ double get_time_from_duration(const builtin_interfaces::msg::Duration & time_fro
 };
 
 // Make P symmetric
-auto make_symmetric(Eigen::Matrix<double, NUM_STATES, NUM_STATES> & P)
-{
-  return 0.5 * (P + P.transpose());
-}
+auto make_symmetric(MatrixXX & P) { return 0.5 * (P + P.transpose()); }
 
 class TrajectoryLQR
 {
 public:
-  std::vector<Eigen::Matrix<double, 1, NUM_STATES>> K_vec_;
+  std::vector<MatrixUX> K_vec_;
   std::vector<builtin_interfaces::msg::Duration> time_vec_;
 
   /**
    * @brief sample the feedback gain at the given time
    */
-  Eigen::Matrix<double, 1, NUM_STATES> get_feedback_gain(
-    const rclcpp::Duration & duration_since_start);
+  MatrixUX get_feedback_gain(const rclcpp::Duration & duration_since_start) const;
 
   /**
    * @brief resets internal storage
@@ -63,12 +67,12 @@ public:
   /**
    * @brief returns true if the trajectory is empty
    */
-  bool is_empty() { return K_vec_.empty(); }
+  bool is_empty() const { return K_vec_.empty(); }
 
   /**
    * @brief print the gains on std::cout
    */
-  void print()
+  void print() const
   {
     for (size_t i = 0; i < K_vec_.size(); ++i)
     {
@@ -117,21 +121,13 @@ protected:
   void parseGains();
 
   void get_linear_system_matrices(
-    Eigen::Vector<double, NUM_STATES> x, Eigen::Vector<double, 1> u, const double dt,
-    Eigen::Matrix<double, NUM_STATES, NUM_STATES> & Phi,
-    Eigen::Matrix<double, NUM_STATES, 1> & Gamma);
+    const VectorX x, const VectorU u, const double dt, MatrixXX & Phi, MatrixXU & Gamma) const;
   void calcLQR_steady(
-    Eigen::Vector<double, NUM_STATES> q, Eigen::Vector<double, 1> u, double dt,
-    Eigen::Matrix<double, NUM_STATES, NUM_STATES> Q, Eigen::Matrix<double, 1, 1> R,
-    Eigen::Matrix<double, 1, NUM_STATES> N, Eigen::Matrix<double, 1, NUM_STATES> & Ks,
-    Eigen::Matrix<double, NUM_STATES, NUM_STATES> & Ps);
+    const VectorX q, const VectorU u, const double dt, const MatrixXX Q, const MatrixUU R,
+    const MatrixUX N, MatrixUX & Ks, MatrixXX & Ps) const;
   void riccati_step(
-    Eigen::Matrix<double, 1, NUM_STATES> & K, Eigen::Matrix<double, NUM_STATES, NUM_STATES> & P_new,
-    const Eigen::Matrix<double, NUM_STATES, NUM_STATES> & P,
-    const Eigen::Matrix<double, NUM_STATES, NUM_STATES> & Phi,
-    const Eigen::Matrix<double, NUM_STATES, 1> & Gamma,
-    const Eigen::Matrix<double, NUM_STATES, NUM_STATES> & Q, const Eigen::Matrix<double, 1, 1> & R,
-    const Eigen::Matrix<double, 1, NUM_STATES> & N);
+    MatrixUX & K, MatrixXX & P_new, const MatrixXX & P, const MatrixXX & Phi,
+    const MatrixXU & Gamma, const MatrixXX & Q, const MatrixUU & R, const MatrixUX & N) const;
 
   // integrator state for system input/LQR output
   double u_;
@@ -147,9 +143,9 @@ protected:
   // sampling time of the controller
   double dt_ = 0.01;
   // LQR cost function parameter for states
-  Eigen::Matrix<double, NUM_STATES, NUM_STATES> Q_;
+  MatrixXX Q_;
   // LQR cost function parameter for input
-  Eigen::Matrix<double, 1, 1> R_;
+  MatrixUU R_;
 
   // storage for LQR gains
   std::shared_ptr<TrajectoryLQR> trajectory_active_lqr_ptr_;
