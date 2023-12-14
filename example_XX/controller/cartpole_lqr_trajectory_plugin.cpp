@@ -18,6 +18,11 @@
 
 namespace ros2_control_demo_example_xx
 {
+// Make P symmetric
+auto make_symmetric(Eigen::Matrix<double, NUM_STATES, NUM_STATES> & P)
+{
+  return 0.5 * (P + P.transpose());
+}
 
 Eigen::Matrix<double, 1, NUM_STATES> TrajectoryLQR::get_feedback_gain(
   const rclcpp::Duration & duration_since_start)
@@ -278,7 +283,7 @@ void CartpoleLqrTrajectoryPlugin::calcLQR_steady(
     {  // abort criterium
       break;
     }
-    P = 0.5 * (P_new + P_new.transpose());
+    P = make_symmetric(P_new);
   }
   Ks = K;
   Ps = P;
