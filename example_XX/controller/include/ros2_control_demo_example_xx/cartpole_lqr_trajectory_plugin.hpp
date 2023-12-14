@@ -24,11 +24,11 @@
 #include "joint_trajectory_controller_plugins/trajectory_controller_base.hpp"
 
 // shortcut
-#define NUM_STATES 4
 namespace ros2_control_demo_example_xx
 {
+#define NUM_STATES 4
 
-double get_time(const builtin_interfaces::msg::Duration & time_from_start)
+double get_time_from_duration(const builtin_interfaces::msg::Duration & time_from_start)
 {
   return time_from_start.sec + time_from_start.nanosec * 1e-9;
 };
@@ -66,7 +66,7 @@ public:
   {
     for (size_t i = 0; i < K_vec_.size(); ++i)
     {
-      std::cout << "at t: " << get_time(time_vec_.at(i)) << "s K: " << std::endl
+      std::cout << "at t: " << get_time_from_duration(time_vec_.at(i)) << "s K: " << std::endl
                 << K_vec_.at(i) << std::endl;
     }
   }

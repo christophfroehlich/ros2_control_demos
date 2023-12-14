@@ -165,7 +165,7 @@ bool CartpoleLqrTrajectoryPlugin::computeControlLawNonRT_impl(
     new_trajectory_gains->K_vec_.resize(trajectory->points.size() - 1);
     new_trajectory_gains->time_vec_.resize(trajectory->points.size() - 1);
 
-    double t_traj = get_time(trajectory->points.back().time_from_start);
+    double t_traj = get_time_from_duration(trajectory->points.back().time_from_start);
     auto idx_traj = trajectory->points.size();
 
     // iterate Riccati equation, backwards in time
@@ -178,8 +178,8 @@ bool CartpoleLqrTrajectoryPlugin::computeControlLawNonRT_impl(
       // we don't have acceleration in trajectory, so we have to calculate it
       if (idx_traj < trajectory->points.size())
       {
-        double dt_traj = get_time(trajectory->points.at(idx_traj).time_from_start) -
-                         get_time(point.time_from_start);
+        double dt_traj = get_time_from_duration(trajectory->points.at(idx_traj).time_from_start) -
+                         get_time_from_duration(point.time_from_start);
         x_p1 = get_state_from_point(trajectory->points.at(idx_traj));
         u[0] = (x_p1(3) - x(3)) / dt_traj;
       }
@@ -196,7 +196,7 @@ bool CartpoleLqrTrajectoryPlugin::computeControlLawNonRT_impl(
       // END: This part here is for exemplary purposes - Please do not copy to your production code
 
       t_traj -= dt_;
-      if (t_traj < get_time(trajectory->points.at(idx_traj - 1).time_from_start))
+      if (t_traj < get_time_from_duration(trajectory->points.at(idx_traj - 1).time_from_start))
       {
         idx_traj--;
         if (idx_traj == 0lu)
