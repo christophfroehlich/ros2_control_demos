@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="cart_pole">
+
+  <!-- Import RRBot macro -->
+  <xacro:include filename="$(find ros2_control_demo_description)/cart_pole/urdf/cart_pole_description.urdf.xacro" />
+
+  <!-- Import RRBot ros2_control description -->
+  <xacro:include filename="$(find ros2_control_demo_example_xx)/ros2_control/cart_pole.ros2_control.xacro" />
+
+  <!-- Used for fixing robot -->
+  <link name="world"/>
+
+  <xacro:cart_pole_description parent="world"/>
+
+  <xacro:cart_pole_ros2_control/>
+
+  <!-- Import Gazebo Classic definitions + plugin -->
+  <xacro:include filename="$(find ros2_control_demo_example_xx)/gazebo/cart_pole.gazebo.xacro" />
+  <xacro:cart_pole_gazebo/>
+
+</robot>

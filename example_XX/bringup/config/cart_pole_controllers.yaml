@@ -1,0 +1,63 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 100  # Hz
+
+    trajectory_controllers:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    trajectory_controllers_pid:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+trajectory_controllers:
+  ros__parameters:
+
+    joints:
+      - slider_to_cart
+      - cart_to_pendulum
+
+    command_joints:
+      - slider_to_cart
+
+    command_interfaces:
+      - velocity
+
+    state_interfaces:
+      - position
+      - velocity
+
+    controller_plugin: ros2_control_demo_example_xx::CartpoleLqrTrajectoryPlugin
+
+    gains:
+      R: 0.1
+      Q: [5.0, 5.0, 0.1, 1.0]
+      cart_to_pendulum:
+        angle_wraparound: true
+
+trajectory_controllers_pid:
+  ros__parameters:
+    joints:
+      - slider_to_cart
+      - cart_to_pendulum
+
+    command_joints:
+      - slider_to_cart
+
+    command_interfaces:
+      - velocity
+
+    state_interfaces:
+      - position
+      - velocity
+
+    gains:
+      slider_to_cart:
+        p: 1.0
+        i: 0.0
+        d: 0.0
+        i_clamp: 0.0
+        ff_velocity_scale: 1.0
+      cart_to_pendulum:
+        angle_wraparound: true

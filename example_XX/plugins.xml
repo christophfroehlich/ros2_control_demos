@@ -1,0 +1,6 @@
+<library path="ros2_control_demo_example_xx">
+  <class
+  type="ros2_control_demo_example_xx::CartpoleLqrTrajectoryPlugin" base_class_type="joint_trajectory_controller_plugins::TrajectoryControllerBase">
+    <description>A trajectory controller consisting of a LQR for the cart pole example.</description>
+  </class>
+</library>

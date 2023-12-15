@@ -1,0 +1,45 @@
+ros2_control_demo_example_xx:
+  command_joints: {
+    type: string_array,
+    default_value: [],
+    description: "Names of joints used by the controller plugin",
+    read_only: true,
+    validation: {
+      size_gt<>: [0],
+    }
+  }
+  system:
+    lS: {
+      type: double,
+      default_value: 1.0,
+      description: "Length of the pole"
+    }
+    mS: {
+      type: double,
+      default_value: 1.100,
+      description: "mass of the pole"
+    }
+    IzzS: {
+      type: double,
+      default_value: 0.092,
+      description: "moment of inertia of the pendulum about its center of mass"
+    }
+    g: {
+      type: double,
+      default_value: 9.80,
+      description: "gravitational constant"
+    }
+  gains:
+    R: {
+      type: double,
+      default_value: 1.0,
+      description: "Cost on the control input"
+    }
+    Q: {
+      type: double_array,
+      default_value: [1.0, 1.0, 1.0, 1.0],
+      description: "Cost on the state, diagonal of matrix",
+      validation: {
+        fixed_size<>: [4],
+      }
+    }
