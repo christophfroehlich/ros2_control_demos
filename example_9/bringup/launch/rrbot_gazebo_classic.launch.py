@@ -99,7 +99,7 @@ def generate_launch_description():
         node_robot_state_publisher,
         spawn_entity,
         joint_state_broadcaster_spawner,
-        # robot_controller_spawner,
+        robot_controller_spawner,
         rviz_node,
     ]
 
