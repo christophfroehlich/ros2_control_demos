@@ -14,10 +14,11 @@ RUN apt-get update \
 COPY . /home/ros2_ws/src/ros2_control_demos
 
 RUN cd /home/ros2_ws/src \
+    && vcs import --input https://raw.githubusercontent.com/ros-controls/ros2_control_ci/master/ros_controls.rolling-on-$ROS_DISTRO.repos \
     && rosdep update --rosdistro ${ROS_DISTRO}  \
     && apt-get update \
     && rosdep install --from-paths ./ -i -y --rosdistro ${ROS_DISTRO} \
-    --skip-keys ros-${ROS_DISTRO}-joint-state-publisher-gui --skip-keys ros-${ROS_DISTRO}-rviz2\
+    --skip-keys ros-${ROS_DISTRO}-joint-state-publisher-gui --skip-keys ros-${ROS_DISTRO}-rviz2 --skip-keys gz_ros2_control ros_gz_sim \ 
     && \
     : "remove cache" && \
     apt-get autoremove -y -qq && \
