@@ -1,4 +1,4 @@
-ARG ROS_DISTRO=rolling
+ARG ROS_DISTRO=humble
 
 FROM ros:${ROS_DISTRO}-ros-base
 
@@ -14,10 +14,11 @@ RUN apt-get update \
 COPY . /home/ros2_ws/src/ros2_control_demos
 
 RUN cd /home/ros2_ws/src \
+    && vcs import --input https://raw.githubusercontent.com/ros-controls/ros2_control_ci/master/ros_controls.rolling-on-$ROS_DISTRO.repos \
     && rosdep update --rosdistro ${ROS_DISTRO}  \
     && apt-get update \
     && rosdep install --from-paths ./ -i -y --rosdistro ${ROS_DISTRO} \
-    --skip-keys ros-${ROS_DISTRO}-joint-state-publisher-gui --skip-keys ros-${ROS_DISTRO}-rviz2\
+    --skip-keys ros-${ROS_DISTRO}-joint-state-publisher-gui --skip-keys ros-${ROS_DISTRO}-rviz2 --skip-keys gz_ros2_control --skip-keys ros_gz_sim \ 
     && \
     : "remove cache" && \
     apt-get autoremove -y -qq && \
@@ -25,9 +26,9 @@ RUN cd /home/ros2_ws/src \
 
 RUN cd /home/ros2_ws/ \
   && . /opt/ros/${ROS_DISTRO}/setup.sh \
-  && colcon build --merge-install --symlink-install
+  && colcon build --cmake-args -DBUILD_TESTING=OFF --symlink-install --packages-up-to ros2_control_demos
 
 COPY Dockerfile/entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
-CMD ros2 launch ros2_control_demo_example_1 rrbot.launch.py start_rviz:=false
+CMD ros2 launch ros2_control_demo_example_1 rrbot.launch.py gui:=false
